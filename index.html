@@ -2,44 +2,76 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>성적 조회</title>
   <link rel="icon" href="favicon.png" type="image/png">
   
   <link rel="manifest" href="manifest.json">
 
   <style>
-    /* 기존 스타일 유지 */
-    body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #f4f6f8; text-align: center; margin: 0; }
+    /* 1. 아래로 스와이프 새로고침 방지 및 텍스트 선택 방지 적용 */
+    body { 
+      font-family: 'Malgun Gothic', sans-serif; 
+      padding: 20px; 
+      background-color: #f4f6f8; 
+      text-align: center; 
+      margin: 0;
+      
+      /* 스와이프 새로고침 방지 */
+      overscroll-behavior-y: contain; 
+      
+      /* 텍스트 선택 및 드래그 방지 */
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
     .container { background: white; max-width: 500px; margin: 30px auto; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; }
     h2 { color: #333; margin-bottom: 25px; }
     p { color: #666; font-size: 14px; margin-bottom: 15px; }
-    input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; transition: 0.3s; }
+    
+    /* 입력창은 텍스트 선택이 가능해야 하므로 user-select 제외 */
+    input { 
+      width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; transition: 0.3s; 
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      user-select: text;
+    }
     input:focus { border-color: #4285F4; outline: none; }
     input.loading { background-color: #f0f0f0; color: #888; font-style: italic; }
+    
     .btn { width: 100%; padding: 14px; background-color: #4285F4; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
     .btn:hover { background-color: #3367d6; }
     .btn:disabled { background-color: #ccc; cursor: not-allowed; } 
     .btn-secondary { background-color: #777; margin-top: 10px; }
+    
     .step-area { display: none; }
     #step1 { display: block; } 
+    
     .result-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #4285F4; padding-bottom: 15px; margin-bottom: 15px; }
     .header-text-group { display: flex; align-items: center; font-size: 22px; font-weight: bold; color: #333; flex-wrap: wrap; gap: 5px; }
     #subjectSelect { font-size: 20px; padding: 5px; border: 2px solid #4285F4; border-radius: 6px; background-color: #e8f0fe; color: #333; font-weight: bold; cursor: pointer; }
+    
     .refresh-btn { background-color: #fff; border: 1px solid #ddd; color: #555; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 5px; margin-left: 10px; white-space: nowrap; flex-shrink: 0; }
     .refresh-btn:hover { background-color: #f1f3f4; border-color: #999; }
+    
     table { width: 100%; border-collapse: collapse; margin-top: 10px; border-radius: 8px; overflow: hidden; }
     th, td { padding: 12px; border-bottom: 1px solid #eee; font-size: 16px; }
     thead tr { background-color: #e0e0e0; color: #333; }
     th:nth-child(1) { text-align: left; width: 60%; padding-left: 20px; }
     th:nth-child(2) { text-align: center; }
+    
     .category-row td { font-weight: bold; font-size: 17px; color: #333; text-align: left; padding-left: 15px; border-top: 2px solid #fff; }
     .bg-exam { background-color: #e6f4ea; } 
     .bg-perform { background-color: #fce8e6; } 
     .bg-default { background-color: #f1f3f4; } 
+    
     .item-row td:nth-child(1) { padding-left: 30px; color: #555; text-align: left; }
     .item-row td:nth-child(2) { text-align: center; font-weight: bold; color: #333; }
     .item-row:last-child td { border-bottom: none; }
+    
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
     .modal-box { background: white; padding: 30px 25px; border-radius: 15px; width: 85%; max-width: 380px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.25s; display: flex; flex-direction: column; gap: 15px; }
     .modal-title { font-size: 19px; font-weight: bold; color: #333; margin-bottom: 5px; }
@@ -111,6 +143,52 @@
     var onModalConfirm = null;
     var isAutoFilling = false;
     var fetchedStudentData = null; 
+
+    // 2. 우클릭 방지 이벤트 리스너 추가
+    document.addEventListener('contextmenu', function(event) {
+      event.preventDefault();
+    });
+
+    // 3. 뒤로가기 처리를 위한 History State 초기화
+    window.addEventListener('load', function() {
+        history.replaceState({ step: 'step1' }, 'step1', '');
+    });
+
+    // 3. 뒤로가기(popstate) 이벤트 핸들러
+    window.onpopstate = function(event) {
+        // 모든 단계 숨김
+        document.querySelectorAll('.step-area').forEach(el => el.style.display = 'none');
+        document.getElementById('step3-result').style.display = 'none';
+        
+        // 메인 타이틀은 결과 화면이 아닐 때만 보임
+        var showMainTitle = true;
+
+        if (event.state && event.state.step) {
+            var target = event.state.step;
+            
+            if (target === 'step3') {
+                document.getElementById('step3-result').style.display = 'block';
+                document.querySelector('.container').style.maxWidth = 'none'; // 결과창 너비 해제
+                showMainTitle = false;
+            } else if (target === 'step2-login') {
+                document.getElementById('step2-login').style.display = 'block';
+                document.querySelector('.container').style.maxWidth = '500px';
+            } else if (target === 'step2-register') {
+                document.getElementById('step2-register').style.display = 'block';
+                document.querySelector('.container').style.maxWidth = '500px';
+            } else {
+                // 기본값: Step 1
+                document.getElementById('step1').style.display = 'block';
+                document.querySelector('.container').style.maxWidth = '500px';
+            }
+        } else {
+            // state가 없는 경우 초기 화면으로
+            document.getElementById('step1').style.display = 'block';
+            document.querySelector('.container').style.maxWidth = '500px';
+        }
+
+        document.getElementById('mainTitle').style.display = showMainTitle ? 'block' : 'none';
+    };
 
     function showAlert(title, msg, callback) {
       document.getElementById('modalTitle').innerText = title;
@@ -207,13 +285,19 @@
           }
           currentId = id; currentName = name;
           fetchedStudentData = data;
+          
           document.getElementById('step1').style.display = 'none';
+          
           if (data.pw && String(data.pw).trim() !== "") {
             document.getElementById('step2-login').style.display = 'block';
             document.getElementById('loginPw').focus();
+            // History State 추가: 로그인 화면
+            history.pushState({ step: 'step2-login' }, 'login', '');
           } else {
             document.getElementById('step2-register').style.display = 'block';
             document.getElementById('regPw1').focus();
+            // History State 추가: 등록 화면
+            history.pushState({ step: 'step2-register' }, 'register', '');
           }
         } else {
           showAlert("정보 불일치", "일치하는 학생 정보가 없습니다.<br>학번과 이름을 다시 확인해주세요.");
@@ -267,14 +351,14 @@
          document.getElementById('mainTitle').style.display = 'none';
          document.getElementById('step3-result').style.display = 'block';
          
+         // History State 추가: 결과 화면
+         history.pushState({ step: 'step3' }, 'result', '');
+
          globalScoreData = fetchedStudentData.scores || {};
-         
-         // [수정된 부분] 저장된 순서(subjectOrder)가 있으면 사용하고, 없으면 기존 방식(Keys) 사용
          var subjectList = fetchedStudentData.subjectOrder || Object.keys(globalScoreData);
 
          var html = '<div class="result-header"><div class="header-text-group"><span style="color:#4285F4">' + currentName + '</span> 학생의 <select id="subjectSelect" onchange="renderTable()">';
          for(var i=0; i<subjectList.length; i++) { 
-           // 데이터에 있는 과목만 표시 (subjectOrder가 있어도 실제 점수가 없으면 제외 가능하지만, 여기선 그대로 표시)
            if(globalScoreData[subjectList[i]]) {
              html += '<option value="' + subjectList[i] + '">' + subjectList[i] + '</option>'; 
            }
@@ -340,7 +424,7 @@
       tableArea.innerHTML = html;
     }
 
-    function resetAll() { location.reload(); }
+    function resetAll() { location.href = location.href; }
   </script>
 
     <script>
