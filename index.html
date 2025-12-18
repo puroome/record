@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>성적 조회</title>
   <link rel="icon" href="favicon.png" type="image/png">
+  
+  <link rel="manifest" href="manifest.json">
 
   <style>
     /* 기존 스타일 유지 */
@@ -340,5 +342,14 @@
 
     function resetAll() { location.reload(); }
   </script>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+          .then(() => console.log('서비스 워커 등록 성공'))
+          .catch(() => console.log('서비스 워커 등록 실패'));
+      }
+    </script>
+  
 </body>
 </html>
