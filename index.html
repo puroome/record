@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>성적 조회 시스템</title>
+  <style>
+    /* 기본 디자인 설정 */
+    body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #f4f6f8; text-align: center; margin: 0; }
+    .container { background: white; max-width: 500px; margin: 30px auto; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    
+    h2 { color: #333; margin-bottom: 25px; }
+    p { color: #666; font-size: 14px; margin-bottom: 15px; }
+
+    /* 입력창 및 버튼 */
+    input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+    input:focus { border-color: #4285F4; outline: none; }
+    
+    .btn { width: 100%; padding: 14px; background-color: #4285F4; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+    .btn:hover { background-color: #3367d6; }
+    .btn:disabled { background-color: #ccc; cursor: not-allowed; } 
+    .btn-secondary { background-color: #777; margin-top: 10px; }
+
+    /* 화면 전환용 */
+    .step-area { display: none; }
+    #step1 { display: block; } 
+
+    /* 결과 화면 */
+    .result-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #4285F4; padding-bottom: 15px; margin-bottom: 15px; }
+    .header-text-group { display: flex; align-items: center; font-size: 18px; font-weight: bold; color: #333; flex-wrap: wrap; gap: 5px; }
+    #subjectSelect { font-size: 18px; padding: 5px; border: 2px solid #4285F4; border-radius: 6px; background-color: #e8f0fe; color: #333; font-weight: bold; cursor: pointer; }
+    
+    /* 테이블 */
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; border-radius: 8px; overflow: hidden; }
+    th, td { padding: 12px; border-bottom: 1px solid #eee; font-size: 15px; }
+    thead tr { background-color: #e0e0e0; color: #333; }
+    th:nth-child(1) { text-align: left; width: 60%; padding-left: 20px; }
+    
+    .category-row td { font-weight: bold; font-size: 16px; color: #333; text-align: left; padding-left: 15px; border-top: 2px solid #fff; }
+    .bg-exam { background-color: #e6f4ea; } 
+    .bg-perform { background-color: #fce8e6; } 
+    .bg-default { background-color: #f1f3f4; } 
+    .item-row td:nth-child(1) { padding-left: 30px; color: #555; text-align: left; }
+    .item-row td:nth-child(2) { text-align: center; font-weight: bold; color: #333; }
+
+    /* 모달 */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 999; }
+    .modal-box { background: white; padding: 25px; border-radius: 12px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+    .modal-btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; margin: 5px; font-weight: bold; }
+    .confirm { background-color: #4285F4; color: white; }
+    .cancel { background-color: #eee; color: #555; }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+  <div class="container">
+    <h2 id="mainTitle">성적 조회</h2>
+    
+    <div id="step1" class="step-area">
+      <p>학번과 이름을 입력하세요.</p>
+      <input type="text" id="inputIds" placeholder="학번 (예: 1101)" onblur="autoFillByInfo('id')">
+      <input type="text" id="inputName" placeholder="이름 (예: 홍길동)" onblur="autoFillByInfo('name')">
+      <button id="btnStep1" onclick="checkUser()" class="btn">확인하기</button>
+    </div>
+
+    <div id="step2-register" class="step-area">
+      <h3 style="color:#4285F4">🔐 비밀번호 설정</h3>
+      <p>첫 방문이시군요!<br>사용할 비밀번호를 설정해주세요.</p>
+      <input type="password" id="regPw1" placeholder="새 비밀번호">
+      <input type="password" id="regPw2" placeholder="비밀번호 확인">
+      <button onclick="registerPassword()" class="btn">설정 완료</button>
+    </div>
+
+    <div id="step2-login" class="step-area">
+      <h3 style="color:#4285F4">🔒 로그인</h3>
+      <p>비밀번호를 입력하세요.</p>
+      <input type="password" id="loginPw" placeholder="비밀번호">
+      <button onclick="login()" class="btn">성적 확인</button>
+    </div>
+
+    <div id="step3-result" class="step-area"></div>
+  </div>
+
+  <div id="customModal" class="modal-overlay">
+    <div class="modal-box">
+      <h3 id="modalTitle" style="margin-top:0">알림</h3>
+      <p id="modalMsg">내용</p>
+      <button id="modalBtnCancel" class="modal-btn cancel" onclick="closeModal()">취소</button>
+      <button id="modalBtnConfirm" class="modal-btn confirm">확인</button>
+    </div>
+  </div>
+
+  <script>
+    // 1. Firebase 설정 (선생님이 주신 키 적용됨)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDzAYguXSjmjNJFEYPplLKUj_twhOO0Llk",
+      authDomain: "record-99cf0.firebaseapp.com",
+      databaseURL: "https://record-99cf0-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "record-99cf0",
+      storageBucket: "record-99cf0.firebasestorage.app",
+      messagingSenderId: "127235673442",
+      appId: "1:127235673442:web:7ebee7c66698c81b70703b"
+    };
+
+    // Firebase 초기화
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const MASTER_PW = "rhkdska25"; // 관리자 비밀번호 (필요 시 수정)
+
+    // 전역 변수
+    let currentId = "";
+    let currentName = "";
+    let fetchedStudentData = null;
+    let onModalConfirm = null;
+
+    /* --- 기능 1: 자동완성 (학번<->이름) --- */
+    function autoFillByInfo(type) {
+      const idVal = document.getElementById('inputIds').value.trim();
+      const nameVal = document.getElementById('inputName').value.trim();
+      
+      // 이미 둘 다 차있거나 비어있으면 중단
+      if ((idVal && nameVal) || (!idVal && !nameVal)) return;
+
+      const targetInput = type === 'id' ? document.getElementById('inputName') : document.getElementById('inputIds');
+      const searchVal = type === 'id' ? idVal : nameVal;
+
+      targetInput.placeholder = "검색 중...";
+      
+      if (type === 'id') {
+        // 학번으로 이름 찾기 (ID가 키이므로 바로 조회)
+        db.ref('students/' + idVal).once('value').then(snapshot => {
+          if (snapshot.exists()) {
+            targetInput.value = snapshot.val().name;
+          } else {
+            targetInput.placeholder = "정보 없음";
+          }
+        });
+      } else {
+        // 이름으로 학번 찾기 (Query 사용)
+        db.ref('students').orderByChild('name').equalTo(nameVal).limitToFirst(1).once('value').then(snapshot => {
+          if (snapshot.exists()) {
+            // 결과 객체의 첫 번째 키(학번)를 가져옴
+            const foundId = Object.keys(snapshot.val())[0];
+            targetInput.value = foundId;
+          } else {
+            targetInput.placeholder = "정보 없음";
+          }
+        });
+      }
+    }
+
+    /* --- 기능 2: 학생 정보 확인 (Step 1) --- */
+    function checkUser() {
+      const id = document.getElementById('inputIds').value.trim();
+      const name = document.getElementById('inputName').value.trim();
+
+      if (!id || !name) { showAlert("입력 오류", "학번과 이름을 모두 입력하세요."); return; }
+
+      // 관리자 프리패스 체크
+      if (id.includes("@") || name.includes("@")) {
+         currentId = id.replace("@",""); 
+         currentName = name.replace("@","");
+         showResultView("##ADMIN##"); // 강제 진입
+         return;
+      }
+
+      // Firebase에서 데이터 가져오기
+      const btn = document.getElementById('btnStep1');
+      btn.disabled = true; btn.innerText = "조회 중...";
+
+      db.ref('students/' + id).once('value').then(snapshot => {
+        btn.disabled = false; btn.innerText = "확인하기";
+        
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          if (data.name !== name) {
+            showAlert("정보 불일치", "학번과 이름이 일치하지 않습니다.");
+            return;
+          }
+          
+          // 정보 일치 -> 전역 변수에 저장
+          currentId = id;
+          currentName = name;
+          fetchedStudentData = data;
+
+          // 화면 전환
+          document.getElementById('step1').style.display = 'none';
+          if (data.pw && data.pw !== "") {
+            document.getElementById('step2-login').style.display = 'block';
+            document.getElementById('loginPw').focus();
+          } else {
+            document.getElementById('step2-register').style.display = 'block';
+            document.getElementById('regPw1').focus();
+          }
+
+        } else {
+          showAlert("오류", "해당 학번의 학생 정보가 없습니다.");
+        }
+      }).catch(err => {
+        console.error(err);
+        btn.disabled = false; btn.innerText = "확인하기";
+        showAlert("통신 오류", "데이터를 불러오지 못했습니다.");
+      });
+    }
+
+    /* --- 기능 3: 비밀번호 등록 --- */
+    function registerPassword() {
+      const pw1 = document.getElementById('regPw1').value;
+      const pw2 = document.getElementById('regPw2').value;
+
+      if (pw1.length < 4) { showAlert("오류", "비밀번호는 4자리 이상이어야 합니다."); return; }
+      if (pw1 !== pw2) { showAlert("오류", "비밀번호가 서로 다릅니다."); return; }
+
+      showConfirm("설정 확인", `비밀번호를 <b>${pw1}</b>로 설정하시겠습니까?`, function() {
+        // Firebase 업데이트
+        db.ref('students/' + currentId).update({ pw: pw1 }).then(() => {
+          showAlert("완료", "비밀번호가 설정되었습니다.", () => {
+             // 데이터 갱신 후 결과 화면으로
+             fetchedStudentData.pw = pw1;
+             showResultView(pw1);
+          });
+        });
+      });
+    }
+
+    /* --- 기능 4: 로그인 --- */
+    function login() {
+      const inputPw = document.getElementById('loginPw').value;
+      if (!inputPw) return;
+
+      if (inputPw === fetchedStudentData.pw || inputPw === MASTER_PW) {
+        showResultView(inputPw);
+      } else {
+        showAlert("로그인 실패", "비밀번호가 틀렸습니다.");
+      }
+    }
+
+    /* --- 기능 5: 결과 화면 렌더링 --- */
+    function showResultView(pw) {
+      const container = document.querySelector('.container');
+      const step3 = document.getElementById('step3-result');
+      
+      // UI 정리
+      document.querySelectorAll('.step-area').forEach(el => el.style.display = 'none');
+      document.getElementById('mainTitle').style.display = 'none';
+      step3.style.display = 'block';
+      
+      // 점수 데이터 가져오기 (fetchedStudentData에 이미 있음)
+      const scores = fetchedStudentData.scores || {};
+      const subjects = Object.keys(scores);
+
+      let html = `
+        <div class="result-header">
+          <div class="header-text-group">
+            <span style="color:#4285F4">${fetchedStudentData.name}</span> 님의
+            <select id="subjectSelect" onchange="renderTable()">`;
+      
+      subjects.forEach(sub => {
+        html += `<option value="${sub}">${sub}</option>`;
+      });
+
+      html += `</select> 성적
+          </div>
+          <button class="btn-secondary" style="margin:0; padding:5px 10px; font-size:12px;" onclick="location.reload()">로그아웃</button>
+        </div>
+        <div id="tableArea"></div>
+      `;
+
+      step3.innerHTML = html;
+      
+      // 테이블 그리기 함수 전역 등록
+      window.renderTable = function() {
+        const selectedSub = document.getElementById('subjectSelect').value;
+        const categoryList = scores[selectedSub];
+        const tableArea = document.getElementById('tableArea');
+
+        let tbl = `<table><thead><tr><th>평가 항목</th><th>점수</th></tr></thead><tbody>`;
+
+        if (categoryList) {
+          categoryList.forEach(catBlock => {
+            // 카테고리 헤더 (중간고사, 수행평가 등)
+            let bgClass = 'bg-default';
+            if (catBlock.category.includes('고사') || catBlock.category.includes('시험')) bgClass = 'bg-exam';
+            else if (catBlock.category.includes('수행')) bgClass = 'bg-perform';
+
+            // 합계 점수 찾기
+            let catTotal = "";
+            const detailItems = [];
+            
+            catBlock.items.forEach(item => {
+              if (item.item.replace(/\s/g,"") === "합계") catTotal = item.score;
+              else detailItems.push(item);
+            });
+
+            tbl += `<tr class="category-row ${bgClass}">
+                      <td>${catBlock.category}</td>
+                      <td style="text-align:center;">${catTotal}</td>
+                    </tr>`;
+
+            // 세부 항목
+            detailItems.forEach(d => {
+              let style = "";
+              if (d.item.includes("객관식") || d.item.includes("주관식")) style = "color:#888; font-weight:normal;";
+              tbl += `<tr class="item-row">
+                        <td>${d.item}</td>
+                        <td style="${style}">${d.score}</td>
+                      </tr>`;
+            });
+          });
+        } else {
+          tbl += `<tr><td colspan="2">데이터가 없습니다.</td></tr>`;
+        }
+        tbl += `</tbody></table>`;
+        tableArea.innerHTML = tbl;
+      };
+
+      // 초기 테이블 렌더링
+      if (subjects.length > 0) renderTable();
+      else step3.innerHTML += "<p>등록된 성적 데이터가 없습니다.</p>";
+    }
+
+    /* --- 유틸리티: 모달창 --- */
+    function showAlert(title, msg, callback) {
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalMsg').innerHTML = msg.replace(/\n/g, "<br>");
+      document.getElementById('modalBtnCancel').style.display = 'none';
+      document.getElementById('modalBtnConfirm').onclick = function() { closeModal(); if(callback) callback(); };
+      document.getElementById('customModal').style.display = 'flex';
+    }
+    function showConfirm(title, msg, yesCallback) {
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalMsg').innerHTML = msg.replace(/\n/g, "<br>");
+      document.getElementById('modalBtnCancel').style.display = 'inline-block';
+      document.getElementById('modalBtnConfirm').onclick = function() { closeModal(); if(yesCallback) yesCallback(); };
+      document.getElementById('customModal').style.display = 'flex';
+    }
+    function closeModal() { document.getElementById('customModal').style.display = 'none'; }
+  </script>
+</body>
+</html>
