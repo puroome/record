@@ -42,7 +42,7 @@
     /* 결과 화면 헤더 */
     .result-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #4285F4; padding-bottom: 15px; margin-bottom: 15px; }
     .header-text-group { font-size: 20px; font-weight: bold; color: #333; }
-    .refresh-btn { background-color: #fff; border: 1px solid #ddd; color: #555; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 5px; margin-left: 10px; white-space: nowrap; flex-shrink: 0; }
+    /* 버튼 삭제됨 */
     
     /* --- 아코디언 스타일 --- */
     .accordion-btn {
@@ -352,8 +352,8 @@
          globalScoreData = fetchedStudentData.scores || [];
          
          var html = '<div class="result-header">';
-         html += '<div class="header-text-group"><span style="color:#4285F4">' + currentName + '</span> 학생의 성적표</div>';
-         html += '<button class="refresh-btn" onclick="location.reload()">🔄 처음으로</button>';
+         html += '<div class="header-text-group"><span style="color:#4285F4">' + currentName + '</span> 님의 성적표</div>';
+         // 새로고침 버튼 삭제됨
          html += '</div>';
          
          html += '<div id="accordionArea"></div>';
@@ -387,7 +387,7 @@
         container.appendChild(gradeBtn);
         container.appendChild(gradePanel);
 
-        // [수정됨] 1단계는 기본 펼침 (내용물인 2단계 버튼들이 보이게 됨)
+        // 1단계 기본 펼침
         gradeBtn.classList.add('active');
         gradePanel.style.maxHeight = "none"; 
 
@@ -403,9 +403,7 @@
             gradePanel.appendChild(semesterBtn);
             gradePanel.appendChild(semesterPanel);
 
-            // [수정됨] 2단계는 기본 닫힘 (사용자가 눌러야 3단계가 보임)
-            // 기존 active 클래스 및 maxHeight 코드 제거됨
-
+            // 2단계 기본 닫힘
             semesterBtn.onclick = function() { togglePanel(this, semesterPanel); };
 
             // 3단: 과목
@@ -418,12 +416,10 @@
                  semesterPanel.appendChild(subjectBtn);
                  semesterPanel.appendChild(subjectPanel);
 
-                 // 3단계는 닫힘
                  subjectBtn.onclick = function() { togglePanel(this, subjectPanel); };
 
                  var tableContainer = document.createElement('div');
                  tableContainer.className = 'panel-content';
-                 // 테이블 생성 호출
                  tableContainer.innerHTML = getTableHTML(subjectNode.items);
                  subjectPanel.appendChild(tableContainer);
               });
@@ -456,12 +452,9 @@
       }
     }
 
-    // [수정됨] 모의고사 처리 로직 개선
     function getTableHTML(categoryList) {
-      // 1. 모의고사 여부 감지 (카테고리 이름이 '등급'인 항목이 포함되어 있는지 확인)
       var isMockExam = categoryList.some(function(c) { return c.category === "등급"; });
 
-      // 2. 헤더 이름 변경 (평가->과목, 점수->등급)
       var thTitle = isMockExam ? "과목" : "평가";
       var thScore = isMockExam ? "등급" : "점수";
 
@@ -479,11 +472,9 @@
             else { displayItems.push(items[i]); }
           }
 
-          // [핵심] 모의고사이고 카테고리가 '등급'이면 카테고리 행(회색바)을 아예 그리지 않음
           if (isMockExam && category === "등급") {
-             // 카테고리 행 생략 (Skip)
+             // 카테고리 행 생략
           } else {
-             // 일반적인 경우 카테고리 행 표시
              var bgClass = 'bg-default';
              if (category.indexOf('고사') > -1 || category.indexOf('시험') > -1) bgClass = 'bg-exam';
              else if (category.indexOf('수행') > -1) bgClass = 'bg-perform';
@@ -494,7 +485,6 @@
              html += '</tr>';
           }
           
-          // 아이템(과목 점수 등) 출력
           for (var i = 0; i < displayItems.length; i++) {
             var itemName = displayItems[i].item;
             var itemScore = displayItems[i].score;
