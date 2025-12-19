@@ -5,11 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>성적 조회</title>
   <link rel="icon" href="favicon.png" type="image/png">
-  
   <link rel="manifest" href="manifest.json">
 
   <style>
-    /* 1. 기본 설정 및 스와이프/선택 방지 */
+    /* 1. 기본 설정 */
     body { 
       font-family: 'Malgun Gothic', sans-serif; 
       padding: 20px; 
@@ -17,23 +16,17 @@
       text-align: center; 
       margin: 0;
       overscroll-behavior-y: contain; 
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
+      user-select: none; -webkit-user-select: none;
     }
 
     .container { background: white; max-width: 500px; margin: 30px auto; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; }
     h2 { color: #333; margin-bottom: 25px; }
     p { color: #666; font-size: 14px; margin-bottom: 15px; }
     
-    /* 입력창 스타일 */
+    /* 입력창 */
     input { 
       width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; transition: 0.3s; 
-      -webkit-user-select: text;
-      -moz-user-select: text;
-      -ms-user-select: text;
-      user-select: text;
+      user-select: text; -webkit-user-select: text;
     }
     input:focus { border-color: #4285F4; outline: none; }
     input.loading { background-color: #f0f0f0; color: #888; font-style: italic; }
@@ -50,53 +43,32 @@
     .result-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #4285F4; padding-bottom: 15px; margin-bottom: 15px; }
     .header-text-group { font-size: 20px; font-weight: bold; color: #333; }
     .refresh-btn { background-color: #fff; border: 1px solid #ddd; color: #555; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 5px; margin-left: 10px; white-space: nowrap; flex-shrink: 0; }
-    .refresh-btn:hover { background-color: #f1f3f4; border-color: #999; }
     
-    /* --- 아코디언 스타일 (NEW) --- */
+    /* --- 아코디언 스타일 --- */
     .accordion-btn {
-      background-color: #fff;
-      color: #333;
-      cursor: pointer;
-      padding: 16px 12px;
-      width: 100%;
-      text-align: left;
-      border: none;
-      border-bottom: 1px solid #f0f0f0;
-      outline: none;
-      font-size: 16px;
-      font-weight: bold;
-      transition: 0.3s;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 2px;
+      background-color: #fff; color: #333; cursor: pointer; padding: 16px 12px; width: 100%; text-align: left;
+      border: none; border-bottom: 1px solid #f0f0f0; outline: none; font-size: 16px; font-weight: bold;
+      transition: 0.3s; display: flex; justify-content: space-between; align-items: center; margin-top: 2px;
     }
     .accordion-btn:hover { background-color: #f9f9f9; }
     .accordion-btn.active { background-color: #e8f0fe; color: #1967d2; border-bottom: none; }
     
-    /* 계층별 들여쓰기 및 스타일 */
-    .level-1 { font-size: 18px; border-left: 6px solid #4285F4; background-color: #fff; } /* 학년 */
-    .level-2 { font-size: 16px; padding-left: 30px; border-left: 6px solid #34a853; background-color: #fafafa; } /* 학기 */
-    .level-3 { font-size: 15px; padding-left: 50px; border-left: 6px solid #fbbc05; background-color: #fcfcfc; } /* 과목 */
+    /* 계층별 스타일 */
+    .level-1 { font-size: 18px; border-left: 6px solid #4285F4; background-color: #fff; } 
+    .level-2 { font-size: 16px; padding-left: 30px; border-left: 6px solid #34a853; background-color: #fafafa; } 
+    .level-3 { font-size: 15px; padding-left: 50px; border-left: 6px solid #fbbc05; background-color: #fcfcfc; } 
 
-    /* 패널 (내용 숨김/보임) */
+    /* 패널 */
     .panel {
-      padding: 0;
-      background-color: white;
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.2s ease-out;
-      border-bottom: 1px solid #eee;
+      padding: 0; background-color: white; max-height: 0; overflow: hidden; transition: max-height 0.2s ease-out; border-bottom: 1px solid #eee;
     }
-    /* 테이블 감싸는 영역 */
     .panel-content { padding: 10px 5px; animation: fadeIn 0.3s; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     
-    /* 화살표 아이콘 */
     .arrow::after { content: '▼'; font-size: 12px; float: right; transform: rotate(-90deg); transition: 0.2s; color: #999; }
     .active .arrow::after { transform: rotate(0deg); color: inherit; }
 
-    /* --- 성적 테이블 스타일 --- */
+    /* 테이블 */
     table { width: 100%; border-collapse: collapse; margin-top: 5px; border-radius: 8px; overflow: hidden; font-size: 15px; }
     th, td { padding: 10px 8px; border-bottom: 1px solid #eee; }
     thead tr { background-color: #e0e0e0; color: #333; }
@@ -112,7 +84,7 @@
     .item-row td:nth-child(2) { text-align: center; font-weight: bold; color: #333; }
     .item-row:last-child td { border-bottom: none; }
     
-    /* 모달 스타일 */
+    /* 모달 */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
     .modal-box { background: white; padding: 30px 25px; border-radius: 15px; width: 85%; max-width: 380px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.25s; display: flex; flex-direction: column; gap: 15px; }
     .modal-title { font-size: 19px; font-weight: bold; color: #333; margin-bottom: 5px; }
@@ -180,20 +152,17 @@
 
     var currentId = "";
     var currentName = "";
-    var globalScoreData = {};
+    var globalScoreData = null; 
     var onModalConfirm = null;
     var isAutoFilling = false;
     var fetchedStudentData = null; 
 
-    // 우클릭 방지
     document.addEventListener('contextmenu', function(event) { event.preventDefault(); });
 
-    // History State 초기화
     window.addEventListener('load', function() {
         history.replaceState({ step: 'step1' }, 'step1', '');
     });
 
-    // 뒤로가기(popstate) 이벤트
     window.onpopstate = function(event) {
         document.querySelectorAll('.step-area').forEach(el => el.style.display = 'none');
         document.getElementById('step3-result').style.display = 'none';
@@ -219,7 +188,6 @@
         document.getElementById('mainTitle').style.display = showMainTitle ? 'block' : 'none';
     };
 
-    // 모달 관련 함수들
     function showAlert(title, msg, callback) {
       document.getElementById('modalTitle').innerText = title;
       document.getElementById('modalMsg').innerHTML = msg.replace(/\n/g, "<br>");
@@ -239,7 +207,6 @@
     function closeModal() { document.getElementById('customModal').style.display = 'none'; }
     document.getElementById('modalBtnConfirm').onclick = function() { if (onModalConfirm) onModalConfirm(); else closeModal(); };
 
-    // 자동완성 (AutoFill)
     function autoFill(type) {
       if (isAutoFilling) return;
       var inputIds = document.getElementById('inputIds');
@@ -285,7 +252,6 @@
       });
     }
 
-    // Step 1 처리
     function processStep1() {
       if (isAutoFilling) return;
       var rawId = document.getElementById('inputIds').value;
@@ -335,7 +301,6 @@
       });
     }
 
-    // 비밀번호 등록
     function processRegister() {
       var pw1 = document.getElementById('regPw1').value;
       var pw2 = document.getElementById('regPw2').value;
@@ -351,14 +316,12 @@
       });
     }
 
-    // 로그인
     function processLogin() {
       var pw = document.getElementById('loginPw').value;
       if (!pw) { showAlert("입력 오류", "비밀번호를 입력하세요."); return; }
       loadScoreAndShow(pw);
     }
 
-    // 데이터 로드
     function loadScoreAndShow(pw) {
       if (!fetchedStudentData) {
          db.ref('students/' + currentId).once('value').then(function(snap){
@@ -373,7 +336,6 @@
       } else { verifyAndRender(pw); }
     }
 
-    // [중요] 로그인 검증 및 3단 아코디언 렌더링 시작
     function verifyAndRender(pw) {
        var isMaster = (String(pw).trim() === MASTER_PW || String(pw) === "##ADMIN_FREE_PASS##");
        var storedPw = fetchedStudentData.pw ? String(fetchedStudentData.pw).trim() : "";
@@ -387,21 +349,18 @@
          
          history.pushState({ step: 'step3' }, 'result', '');
 
-         globalScoreData = fetchedStudentData.scores || {};
+         globalScoreData = fetchedStudentData.scores || [];
          
-         // 1. 헤더 (학생이름, 새로고침)
          var html = '<div class="result-header">';
          html += '<div class="header-text-group"><span style="color:#4285F4">' + currentName + '</span> 님의 성적표</div>';
          html += '<button class="refresh-btn" onclick="location.reload()">🔄 처음으로</button>';
          html += '</div>';
          
-         // 2. 아코디언 영역 생성
          html += '<div id="accordionArea"></div>';
          html += '<button class="btn btn-secondary" onclick="resetAll()">로그아웃</button>';
          
          document.getElementById('step3-result').innerHTML = html;
          
-         // 3. 데이터 트리 렌더링 호출
          renderAccordionTree(globalScoreData, document.getElementById('accordionArea'));
 
        } else {
@@ -413,59 +372,68 @@
        }
     }
 
-    // 3단 아코디언 생성 함수 (학년 -> 학기 -> 과목)
     function renderAccordionTree(data, container) {
-      if (!data || Object.keys(data).length === 0) {
+      if (!data || data.length === 0) {
         container.innerHTML = '<p style="padding:20px; text-align:center;">등록된 성적 데이터가 없습니다.</p>';
         return;
       }
 
       // 1단: 학년
-      Object.keys(data).forEach(function(grade) {
-        var gradeBtn = createAccordionBtn(grade, 'level-1');
+      data.forEach(function(gradeNode) {
+        var gradeBtn = createAccordionBtn(gradeNode.name, 'level-1');
         var gradePanel = document.createElement('div');
         gradePanel.className = 'panel';
         
         container.appendChild(gradeBtn);
         container.appendChild(gradePanel);
 
+        // 기본 펼침
+        gradeBtn.classList.add('active');
+        gradePanel.style.maxHeight = "none"; 
+
         gradeBtn.onclick = function() { togglePanel(this, gradePanel); };
 
         // 2단: 학기
-        var semesterData = data[grade];
-        Object.keys(semesterData).forEach(function(semester) {
-          var semesterBtn = createAccordionBtn(semester, 'level-2');
-          var semesterPanel = document.createElement('div');
-          semesterPanel.className = 'panel';
-          
-          gradePanel.appendChild(semesterBtn);
-          gradePanel.appendChild(semesterPanel);
+        if(gradeNode.semesters) {
+          gradeNode.semesters.forEach(function(semesterNode) {
+            var semesterBtn = createAccordionBtn(semesterNode.name, 'level-2');
+            var semesterPanel = document.createElement('div');
+            semesterPanel.className = 'panel';
+            
+            gradePanel.appendChild(semesterBtn);
+            gradePanel.appendChild(semesterPanel);
 
-          semesterBtn.onclick = function() { togglePanel(this, semesterPanel); };
+            // 기본 펼침
+            semesterBtn.classList.add('active');
+            semesterPanel.style.maxHeight = "none";
 
-          // 3단: 과목
-          var subjectData = semesterData[semester];
-          Object.keys(subjectData).forEach(function(subject) {
-             var subjectBtn = createAccordionBtn(subject, 'level-3');
-             var subjectPanel = document.createElement('div');
-             subjectPanel.className = 'panel';
-             
-             semesterPanel.appendChild(subjectBtn);
-             semesterPanel.appendChild(subjectPanel);
+            semesterBtn.onclick = function() { togglePanel(this, semesterPanel); };
 
-             subjectBtn.onclick = function() { togglePanel(this, subjectPanel); };
+            // 3단: 과목
+            if(semesterNode.subjects) {
+              semesterNode.subjects.forEach(function(subjectNode) {
+                 var subjectBtn = createAccordionBtn(subjectNode.name, 'level-3');
+                 var subjectPanel = document.createElement('div');
+                 subjectPanel.className = 'panel';
+                 
+                 semesterPanel.appendChild(subjectBtn);
+                 semesterPanel.appendChild(subjectPanel);
 
-             // 4. 점수 테이블 삽입
-             var tableContainer = document.createElement('div');
-             tableContainer.className = 'panel-content';
-             tableContainer.innerHTML = getTableHTML(subjectData[subject]);
-             subjectPanel.appendChild(tableContainer);
+                 // 3단계는 닫힘
+                 subjectBtn.onclick = function() { togglePanel(this, subjectPanel); };
+
+                 var tableContainer = document.createElement('div');
+                 tableContainer.className = 'panel-content';
+                 // 테이블 생성 호출
+                 tableContainer.innerHTML = getTableHTML(subjectNode.items);
+                 subjectPanel.appendChild(tableContainer);
+              });
+            }
           });
-        });
+        }
       });
     }
 
-    // 버튼 생성 헬퍼
     function createAccordionBtn(text, levelClass) {
       var btn = document.createElement('button');
       btn.className = 'accordion-btn ' + levelClass;
@@ -473,29 +441,32 @@
       return btn;
     }
 
-    // 패널 토글 함수 (중첩 높이 처리 포함)
     function togglePanel(btn, panel) {
       btn.classList.toggle("active");
-      if (panel.style.maxHeight) {
-        panel.style.maxHeight = null;
+      
+      if (panel.style.maxHeight && panel.style.maxHeight !== "0px") {
+        panel.style.maxHeight = panel.scrollHeight + "px";
+        setTimeout(() => { panel.style.maxHeight = "0px"; }, 10);
       } else {
         panel.style.maxHeight = panel.scrollHeight + "px";
-        
-        // 중요: 내부 패널이 열릴 때 부모 패널의 높이 제한을 풀어줘야 잘리지 않음
-        var parentPanel = panel.parentElement;
-        if(parentPanel && parentPanel.classList.contains('panel')) {
-            parentPanel.style.maxHeight = "none"; 
-        }
-        var grandParent = parentPanel ? parentPanel.parentElement : null;
-        if(grandParent && grandParent.classList.contains('panel')) {
-            grandParent.style.maxHeight = "none";
+        var parent = panel.parentElement;
+        while(parent && parent.classList.contains('panel')) {
+           parent.style.maxHeight = "none";
+           parent = parent.parentElement;
         }
       }
     }
 
-    // 점수 테이블 HTML 생성 (이전 renderTable 로직 변환)
+    // [수정] 모의고사(등급)인 경우 헤더를 변경하고 카테고리 행을 숨기는 로직 추가
     function getTableHTML(categoryList) {
-      var html = '<table><thead><tr><th>평가</th><th>점수</th></tr></thead><tbody>';
+      // 1. 모의고사 여부 감지 (카테고리 이름이 '등급'인 항목이 포함되어 있는지 확인)
+      var isMockExam = categoryList.some(function(c) { return c.category === "등급"; });
+
+      // 2. 헤더 이름 결정
+      var thTitle = isMockExam ? "과목" : "평가";
+      var thScore = isMockExam ? "등급" : "점수";
+
+      var html = '<table><thead><tr><th>' + thTitle + '</th><th>' + thScore + '</th></tr></thead><tbody>';
       
       if (categoryList && categoryList.length > 0) {
         for (var k = 0; k < categoryList.length; k++) {
@@ -509,15 +480,22 @@
             else { displayItems.push(items[i]); }
           }
 
-          var bgClass = 'bg-default';
-          if (category.indexOf('고사') > -1 || category.indexOf('시험') > -1) bgClass = 'bg-exam';
-          else if (category.indexOf('수행') > -1) bgClass = 'bg-perform';
+          // [핵심] 모의고사이고 카테고리가 '등급'이면 카테고리 행(tr)을 그리지 않음
+          if (isMockExam && category === "등급") {
+             // 카테고리 행 생략
+          } else {
+             // 기존 로직: 일반 시험용 카테고리 행
+             var bgClass = 'bg-default';
+             if (category.indexOf('고사') > -1 || category.indexOf('시험') > -1) bgClass = 'bg-exam';
+             else if (category.indexOf('수행') > -1) bgClass = 'bg-perform';
 
-          html += '<tr class="category-row ' + bgClass + '">';
-          html += '  <td>' + category + '</td>';
-          html += '  <td style="text-align:center;">' + categoryScore + '</td>'; 
-          html += '</tr>';
+             html += '<tr class="category-row ' + bgClass + '">';
+             html += '  <td>' + category + '</td>';
+             html += '  <td style="text-align:center;">' + categoryScore + '</td>'; 
+             html += '</tr>';
+          }
           
+          // 아이템 출력
           for (var i = 0; i < displayItems.length; i++) {
             var itemName = displayItems[i].item;
             var itemScore = displayItems[i].score;
@@ -545,6 +523,5 @@
         .catch(() => console.log('서비스 워커 등록 실패'));
     }
   </script>
-  
 </body>
 </html>
