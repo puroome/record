@@ -144,7 +144,7 @@
     </div>
   </div>
 
-  <div id="graphModal" class="modal-overlay">
+  <div id="graphModal" class="modal-overlay" onclick="if(event.target === this) closeGraphModal()">
     <div class="modal-box">
       <span class="close-icon" onclick="closeGraphModal()">&times;</span>
       <div id="graphTitle" class="modal-title" style="margin-bottom: 10px;">등급 추이</div>
@@ -487,7 +487,6 @@
       return name;
     }
 
-    // [최종 수정] 그래프 로직: 등간격 배치, Y축 1~9등급 꽉 채움
     function showTrendGraph(subjectName) {
       var targetSubject = normalizeSubjectName(subjectName);
       if (!['국어', '수학', '영어'].includes(targetSubject)) return;
@@ -516,7 +515,6 @@
                  
                  if (scoreItem && !isNaN(parseFloat(scoreItem.score))) {
                    var score = parseFloat(scoreItem.score);
-                   // 정렬을 위한 키 (학년*100 + 월)
                    var sortKey = gradeNum * 100 + monthNum;
 
                    trendData.push({ 
@@ -540,8 +538,7 @@
       // 시간순 정렬
       trendData.sort(function(a, b) { return a.sortKey - b.sortKey; });
 
-      // 차트용 데이터 배열 생성
-      var labels = trendData.map(d => d.grade); // X축 라벨 판단용 (학년 정보)
+      var labels = trendData.map(d => d.grade); // X축 라벨 판단용
       var scores = trendData.map(d => d.score); // Y축 데이터
 
       document.getElementById('graphTitle').innerText = targetSubject + " 등급 추이";
@@ -553,7 +550,6 @@
       myChart = new Chart(ctx, {
         type: 'line',
         data: {
-          // 등간격을 위해 labels 배열 길이만큼 데이터 포인트가 생성됨
           labels: labels, 
           datasets: [{
             label: '등급',
@@ -576,27 +572,25 @@
           },
           scales: {
             y: {
-              min: 1,  // 1등급이 맨 위
-              max: 9,  // 9등급이 맨 아래 (바닥선 역할)
+              min: 1,  
+              max: 9,  
               reverse: true,
               ticks: { 
                 stepSize: 1, 
                 padding: 10,
                 callback: function(val) { 
-                  if (val === 9) return ""; // 9등급 숫자 숨김
+                  if (val === 9) return ""; 
                   return Math.floor(val); 
                 } 
               },
               grid: { color: '#f0f0f0' }
             },
             x: {
-              offset: false, // 양쪽 여백 제거 (마지막 값 다음 여백 없음)
+              offset: false,
               grid: { display: false },
               ticks: {
                 callback: function(val, index) {
-                  // val은 인덱스
                   var currentGrade = labels[index];
-                  // 해당 학년의 첫 데이터일 때만 "N학년" 표시
                   if (index === 0 || labels[index - 1] !== currentGrade) {
                     return currentGrade + "학년";
                   }
@@ -608,11 +602,13 @@
           plugins: {
             legend: { display: false },
             tooltip: {
+              displayColors: false, // [수정] 네모 박스 제거
               callbacks: {
                 title: function() { return ""; },
                 label: function(context) { 
                   var d = trendData[context.dataIndex];
-                  return d.grade + "학년 " + d.month + "월: " + d.score + "등급"; 
+                  // [수정] 텍스트 형식 변경: "O학년 O월" (등급 점수 제거)
+                  return d.grade + "학년 " + d.month + "월"; 
                 }
               }
             }
