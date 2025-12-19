@@ -42,7 +42,6 @@
     /* 결과 화면 헤더 */
     .result-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #4285F4; padding-bottom: 15px; margin-bottom: 15px; }
     .header-text-group { font-size: 20px; font-weight: bold; color: #333; }
-    /* 버튼 삭제됨 */
     
     /* --- 아코디언 스타일 --- */
     .accordion-btn {
@@ -68,8 +67,14 @@
     .arrow::after { content: '▼'; font-size: 12px; float: right; transform: rotate(-90deg); transition: 0.2s; color: #999; }
     .active .arrow::after { transform: rotate(0deg); color: inherit; }
 
-    /* 테이블 */
-    table { width: 100%; border-collapse: collapse; margin-top: 5px; border-radius: 8px; overflow: hidden; font-size: 15px; }
+    /* 테이블 스타일 (수정됨: 둥근 모서리 제거) */
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin-top: 5px; 
+      font-size: 15px; 
+      /* border-radius 삭제됨 -> 네모난 모양 */
+    }
     th, td { padding: 10px 8px; border-bottom: 1px solid #eee; }
     thead tr { background-color: #e0e0e0; color: #333; }
     th:nth-child(1) { text-align: left; width: 60%; padding-left: 15px; }
@@ -353,7 +358,6 @@
          
          var html = '<div class="result-header">';
          html += '<div class="header-text-group"><span style="color:#4285F4">' + currentName + '</span> 님의 성적표</div>';
-         // 새로고침 버튼 삭제됨
          html += '</div>';
          
          html += '<div id="accordionArea"></div>';
@@ -452,13 +456,19 @@
       }
     }
 
+    // [수정됨] 일반 과목 헤더 삭제 & 모의고사 헤더 유지 로직
     function getTableHTML(categoryList) {
       var isMockExam = categoryList.some(function(c) { return c.category === "등급"; });
-
-      var thTitle = isMockExam ? "과목" : "평가";
-      var thScore = isMockExam ? "등급" : "점수";
-
-      var html = '<table><thead><tr><th>' + thTitle + '</th><th>' + thScore + '</th></tr></thead><tbody>';
+      
+      var html = '<table>';
+      
+      // 모의고사인 경우에만 헤더(<thead>)를 추가
+      if (isMockExam) {
+         html += '<thead><tr><th>과목</th><th>등급</th></tr></thead>';
+      }
+      // 일반 시험의 경우 헤더 생성 코드를 아예 작성하지 않음 (삭제됨)
+      
+      html += '<tbody>';
       
       if (categoryList && categoryList.length > 0) {
         for (var k = 0; k < categoryList.length; k++) {
