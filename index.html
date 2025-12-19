@@ -89,7 +89,7 @@
     .clickable-subject { color: #1a73e8; text-decoration: underline; cursor: pointer; }
     .clickable-subject:hover { color: #0d47a1; }
     
-    /* 모달 (알림용 & 그래프용 공통) */
+    /* 모달 */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
     .modal-box { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.25s; display: flex; flex-direction: column; gap: 15px; position: relative; }
     .modal-title { font-size: 19px; font-weight: bold; color: #333; margin-bottom: 5px; }
@@ -99,7 +99,6 @@
     .modal-btn.confirm { background-color: #4285F4; color: white; }
     .modal-btn.cancel { background-color: #e0e0e0; color: #555; }
     
-    /* 닫기 버튼 (X) */
     .close-icon { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 24px; color: #999; font-weight: bold; line-height: 1; }
     .close-icon:hover { color: #333; }
 
@@ -176,7 +175,7 @@
     var onModalConfirm = null;
     var isAutoFilling = false;
     var fetchedStudentData = null; 
-    var myChart = null; // 차트 인스턴스 저장용
+    var myChart = null; 
 
     document.addEventListener('contextmenu', function(event) { event.preventDefault(); });
 
@@ -472,12 +471,12 @@
       }
     }
 
-    // 과목명 정규화 (그래프용)
+    // 과목명 정규화
     function normalizeSubjectName(name) {
       if(!name) return "";
-      var n = name.replace(/\s/g, ""); // 공백 제거
+      var n = name.replace(/\s/g, ""); 
       if (n.includes("화법과작문")) return "국어";
-      if (n.includes("언어와매체")) return "국어"; // 혹시 몰라 추가
+      if (n.includes("언어와매체")) return "국어"; 
       if (n.includes("국어")) return "국어";
 
       if (n.includes("확률과통계")) return "수학";
@@ -486,52 +485,45 @@
       if (n.includes("수학")) return "수학";
 
       if (n.includes("영어")) return "영어";
-      return name; // 그 외는 그대로
+      return name;
     }
 
-    // [New] 그래프 데이터 보여주기
+    // [수정됨] 그래프 데이터 수집 로직 개선 (3행이 아니라 5행 아이템에서 과목 찾기)
     function showTrendGraph(subjectName) {
       var targetSubject = normalizeSubjectName(subjectName);
       if (!['국어', '수학', '영어'].includes(targetSubject)) return;
 
-      var trendData = []; // { label: '1-3월', score: 3, sortKey: 103 }
+      var trendData = [];
 
-      // 전체 데이터 순회하며 모의고사 데이터 수집
       if (globalScoreData && globalScoreData.length > 0) {
         globalScoreData.forEach(function(gradeNode) {
           var gradeNum = parseInt(gradeNode.name.replace(/[^0-9]/g, "")) || 0;
           if (!gradeNode.semesters) return;
 
           gradeNode.semesters.forEach(function(semNode) {
-            // 모의고사 여부 확인 (과목 안에 '등급' 카테고리가 있는지로 간접 확인하거나, 학기명으로 추론)
-            // 여기서는 학기명(월)과 내부의 '등급' 카테고리 존재 여부를 모두 확인
+            // 해당 학기 안에 있는 모든 과목(3행)을 순회
             if (!semNode.subjects) return;
 
-            // 해당 학기에 목표 과목(국/영/수)의 '등급' 데이터가 있는지 확인
             semNode.subjects.forEach(function(subNode) {
-              var currentSubName = normalizeSubjectName(subNode.items[0].item); // item 이름이나 subNode.name 사용
-              // *주의: subNode.name은 과목명(국어), subNode.items는 상세항목.
-              // 구조: subNode.name = "국어", items=[{category:"등급", items:[{item:"국어", score:3}]}]
-              
-              // 정확한 과목명 매칭 (통합된 이름으로)
-              if (normalizeSubjectName(subNode.name) !== targetSubject) return;
-
-              // '등급' 카테고리 찾기
+              // subNode는 3행 그룹(예: "모의고사", "전체"). 이름은 중요하지 않음.
+              // 이 안에 "등급" 카테고리가 있는지 확인.
               var gradeCategory = subNode.items.find(function(c) { return c.category === "등급"; });
+              
               if (gradeCategory) {
-                 // 등급 점수 찾기 (보통 items의 첫번째 혹은 이름이 과목명인 것)
-                 var scoreItem = gradeCategory.items.find(function(it) { 
-                   return !isNaN(parseFloat(it.score)); 
+                 // "등급" 카테고리 안의 상세항목(5행)들 중 목표 과목 찾기
+                 var scoreItem = gradeCategory.items.find(function(it) {
+                    // 항목 이름(it.item)이 국어/수학/영어 인지 확인
+                    return normalizeSubjectName(it.item) === targetSubject;
                  });
                  
-                 if (scoreItem) {
+                 // 점수가 있고 숫자라면 추가
+                 if (scoreItem && !isNaN(parseFloat(scoreItem.score))) {
                    var score = parseFloat(scoreItem.score);
-                   var monthStr = semNode.name.replace(/[^0-9]/g, ""); // "3월" -> "3"
+                   var monthStr = semNode.name.replace(/[^0-9]/g, ""); 
                    var monthNum = parseInt(monthStr) || 0;
                    
-                   // X축 라벨: "1-3월"
                    var label = gradeNum + "-" + monthNum + "월";
-                   // 정렬 키: 103 (1학년 3월), 211 (2학년 11월)
+                   // 정렬 키: 1학년 3월 -> 103, 2학년 11월 -> 211
                    var sortKey = gradeNum * 100 + monthNum;
 
                    trendData.push({ label: label, score: score, sortKey: sortKey });
@@ -556,7 +548,7 @@
 
       // 차트 그리기
       var ctx = document.getElementById('trendChart').getContext('2d');
-      if (myChart) myChart.destroy(); // 기존 차트 삭제
+      if (myChart) myChart.destroy(); 
 
       myChart = new Chart(ctx, {
         type: 'line',
@@ -572,7 +564,7 @@
             pointBorderColor: '#4285F4',
             pointRadius: 5,
             fill: true,
-            tension: 0.3 // 곡선
+            tension: 0.3
           }]
         },
         options: {
@@ -580,9 +572,9 @@
           maintainAspectRatio: false,
           scales: {
             y: {
-              min: 0.5, // 1등급이 잘 보이게 여유
+              min: 0.5,
               max: 9.5,
-              reverse: true, // 1등급이 위로 가도록 반전
+              reverse: true, // 1등급이 상단
               ticks: { stepSize: 1, callback: function(val) { return Number.isInteger(val)? val : ""; } },
               grid: { color: '#f0f0f0' }
             },
@@ -606,7 +598,6 @@
       document.getElementById('graphModal').style.display = 'none';
     }
 
-    // HTML 생성 (클릭 이벤트 추가됨)
     function getTableHTML(categoryList) {
       var isMockExam = categoryList.some(function(c) { return c.category === "등급"; });
       var html = '<table>';
@@ -647,7 +638,7 @@
             var itemScore = displayItems[i].score;
             var scoreStyle = "";
             
-            // [New] 모의고사이고 국/영/수(통합포함)인 경우 클릭 이벤트 추가
+            // 모의고사이고 국/영/수(통합포함)인 경우 클릭 이벤트 추가
             var normalized = normalizeSubjectName(itemName);
             var isTarget = ['국어','수학','영어'].includes(normalized);
             var clickAttr = "";
