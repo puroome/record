@@ -471,7 +471,6 @@
       }
     }
 
-    // 과목명 정규화
     function normalizeSubjectName(name) {
       if(!name) return "";
       var n = name.replace(/\s/g, ""); 
@@ -488,12 +487,13 @@
       return name;
     }
 
-    // [수정됨] 그래프 데이터 수집 로직 개선 (3행이 아니라 5행 아이템에서 과목 찾기)
+    // [중요 수정] 그래프 로직 (월 정보 파싱 위치 수정 및 X축 상대 간격 적용)
     function showTrendGraph(subjectName) {
       var targetSubject = normalizeSubjectName(subjectName);
       if (!['국어', '수학', '영어'].includes(targetSubject)) return;
 
       var trendData = [];
+      var seenGrades = {}; // 학년별 첫 데이터 체크용
 
       if (globalScoreData && globalScoreData.length > 0) {
         globalScoreData.forEach(function(gradeNode) {
@@ -501,32 +501,44 @@
           if (!gradeNode.semesters) return;
 
           gradeNode.semesters.forEach(function(semNode) {
-            // 해당 학기 안에 있는 모든 과목(3행)을 순회
+            // semNode는 "모의고사" 그룹 (2행)
             if (!semNode.subjects) return;
 
+            // subNode는 "3월", "10월" 같은 월 정보 (3행)
             semNode.subjects.forEach(function(subNode) {
-              // subNode는 3행 그룹(예: "모의고사", "전체"). 이름은 중요하지 않음.
-              // 이 안에 "등급" 카테고리가 있는지 확인.
+              
+              // 월 정보 추출 (3행 과목명에서)
+              var monthStr = subNode.name.replace(/[^0-9]/g, ""); 
+              var monthNum = parseInt(monthStr);
+
+              // 월 정보가 없으면 패스
+              if (isNaN(monthNum)) return;
+
+              // 이 안에 "등급" 카테고리가 있는지 확인
               var gradeCategory = subNode.items.find(function(c) { return c.category === "등급"; });
               
               if (gradeCategory) {
-                 // "등급" 카테고리 안의 상세항목(5행)들 중 목표 과목 찾기
+                 // "등급" 안의 5행 상세항목 중 목표 과목(국/수/영) 찾기
                  var scoreItem = gradeCategory.items.find(function(it) {
-                    // 항목 이름(it.item)이 국어/수학/영어 인지 확인
                     return normalizeSubjectName(it.item) === targetSubject;
                  });
                  
-                 // 점수가 있고 숫자라면 추가
                  if (scoreItem && !isNaN(parseFloat(scoreItem.score))) {
                    var score = parseFloat(scoreItem.score);
-                   var monthStr = semNode.name.replace(/[^0-9]/g, ""); 
-                   var monthNum = parseInt(monthStr) || 0;
                    
-                   var label = gradeNum + "-" + monthNum + "월";
-                   // 정렬 키: 1학년 3월 -> 103, 2학년 11월 -> 211
-                   var sortKey = gradeNum * 100 + monthNum;
+                   // X축 상대 간격을 위한 수치값 계산 (Time Value)
+                   // (학년-1)*12 + 월 => 예: 1학년 3월=3, 1학년 11월=11, 2학년 3월=15 (4개월 차이 보존)
+                   var timeValue = (gradeNum - 1) * 12 + monthNum;
 
-                   trendData.push({ label: label, score: score, sortKey: sortKey });
+                   // 라벨용 텍스트
+                   var labelText = gradeNum + "학년";
+
+                   trendData.push({ 
+                     x: timeValue, 
+                     y: score, 
+                     grade: gradeNum,
+                     label: labelText // 툴팁용이나 축 표시용
+                   });
                  }
               }
             });
@@ -540,23 +552,27 @@
       }
 
       // 시간순 정렬
-      trendData.sort(function(a, b) { return a.sortKey - b.sortKey; });
+      trendData.sort(function(a, b) { return a.x - b.x; });
 
       // 차트 모달 열기
       document.getElementById('graphTitle').innerText = targetSubject + " 등급 추이";
       document.getElementById('graphModal').style.display = 'flex';
 
-      // 차트 그리기
       var ctx = document.getElementById('trendChart').getContext('2d');
       if (myChart) myChart.destroy(); 
+
+      // 학년별 첫 데이터인지 확인하여 라벨링
+      var firstPoints = {};
+      trendData.forEach(function(d) {
+        if (!firstPoints[d.grade]) firstPoints[d.grade] = d.x;
+      });
 
       myChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: trendData.map(d => d.label),
           datasets: [{
             label: '등급',
-            data: trendData.map(d => d.score),
+            data: trendData, // {x, y} 객체 배열
             borderColor: '#4285F4',
             backgroundColor: 'rgba(66, 133, 244, 0.1)',
             borderWidth: 2,
@@ -572,21 +588,53 @@
           maintainAspectRatio: false,
           scales: {
             y: {
-              min: 0.5,
-              max: 9.5,
+              min: 0.8, // 1등급 위 공간 확보
+              max: 9.0, // 9등급을 바닥선(0위치)으로 설정
               reverse: true, // 1등급이 상단
-              ticks: { stepSize: 1, callback: function(val) { return Number.isInteger(val)? val : ""; } },
+              ticks: { 
+                stepSize: 1, 
+                callback: function(val) { 
+                  // 9등급은 표시 안 함 (바닥선 역할)
+                  if (val >= 9) return "";
+                  return Number.isInteger(val)? val : ""; 
+                } 
+              },
               grid: { color: '#f0f0f0' }
             },
             x: {
-              grid: { display: false }
+              type: 'linear', // 선형 축으로 변경하여 상대적 간격 표현
+              position: 'bottom',
+              min: trendData[0].x - 1,
+              max: trendData[trendData.length-1].x + 1,
+              ticks: {
+                stepSize: 1, // 1개월 단위
+                callback: function(value) {
+                  // 해당 value가 데이터에 존재하는지 확인
+                  var point = trendData.find(d => d.x === value);
+                  if (point) {
+                    // 해당 학년의 첫 데이터일 때만 "N학년" 표시
+                    if (firstPoints[point.grade] === value) {
+                      return point.grade + "학년";
+                    }
+                  }
+                  return ""; // 그 외에는 빈 텍스트
+                }
+              },
+              grid: { display: false } // X축 격자 숨김
             }
           },
           plugins: {
             legend: { display: false },
             tooltip: {
               callbacks: {
-                label: function(context) { return context.raw + ' 등급'; }
+                title: function() { return ""; }, // 툴팁 상단 제목 제거
+                label: function(context) { 
+                  var p = context.raw;
+                  // 툴팁에는 상세 정보 표시 (예: 1학년 3월 - 1등급)
+                  // 역산: month = p.x - (p.grade-1)*12
+                  var month = p.x - (p.grade-1)*12;
+                  return p.grade + "학년 " + month + "월: " + p.y + "등급"; 
+                }
               }
             }
           }
@@ -638,7 +686,6 @@
             var itemScore = displayItems[i].score;
             var scoreStyle = "";
             
-            // 모의고사이고 국/영/수(통합포함)인 경우 클릭 이벤트 추가
             var normalized = normalizeSubjectName(itemName);
             var isTarget = ['국어','수학','영어'].includes(normalized);
             var clickAttr = "";
