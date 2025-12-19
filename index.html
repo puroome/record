@@ -6,6 +6,8 @@
   <title>성적 조회</title>
   <link rel="icon" href="favicon.png" type="image/png">
   <link rel="manifest" href="manifest.json">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     /* 1. 기본 설정 */
@@ -67,14 +69,8 @@
     .arrow::after { content: '▼'; font-size: 12px; float: right; transform: rotate(-90deg); transition: 0.2s; color: #999; }
     .active .arrow::after { transform: rotate(0deg); color: inherit; }
 
-    /* 테이블 스타일 (수정됨: 둥근 모서리 제거) */
-    table { 
-      width: 100%; 
-      border-collapse: collapse; 
-      margin-top: 5px; 
-      font-size: 15px; 
-      /* border-radius 삭제됨 -> 네모난 모양 */
-    }
+    /* 테이블 스타일 */
+    table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 15px; }
     th, td { padding: 10px 8px; border-bottom: 1px solid #eee; }
     thead tr { background-color: #e0e0e0; color: #333; }
     th:nth-child(1) { text-align: left; width: 60%; padding-left: 15px; }
@@ -88,16 +84,25 @@
     .item-row td:nth-child(1) { padding-left: 25px; color: #555; text-align: left; }
     .item-row td:nth-child(2) { text-align: center; font-weight: bold; color: #333; }
     .item-row:last-child td { border-bottom: none; }
+
+    /* 클릭 가능한 과목 (그래프용) */
+    .clickable-subject { color: #1a73e8; text-decoration: underline; cursor: pointer; }
+    .clickable-subject:hover { color: #0d47a1; }
     
-    /* 모달 */
+    /* 모달 (알림용 & 그래프용 공통) */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
-    .modal-box { background: white; padding: 30px 25px; border-radius: 15px; width: 85%; max-width: 380px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.25s; display: flex; flex-direction: column; gap: 15px; }
+    .modal-box { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.25s; display: flex; flex-direction: column; gap: 15px; position: relative; }
     .modal-title { font-size: 19px; font-weight: bold; color: #333; margin-bottom: 5px; }
     .modal-msg { font-size: 15px; color: #555; line-height: 1.6; word-break: keep-all; }
     .modal-btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
     .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; }
     .modal-btn.confirm { background-color: #4285F4; color: white; }
     .modal-btn.cancel { background-color: #e0e0e0; color: #555; }
+    
+    /* 닫기 버튼 (X) */
+    .close-icon { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 24px; color: #999; font-weight: bold; line-height: 1; }
+    .close-icon:hover { color: #333; }
+
     @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   </style>
 
@@ -130,12 +135,22 @@
   </div>
 
   <div id="customModal" class="modal-overlay">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width: 380px;">
       <div id="modalTitle" class="modal-title">알림</div>
       <div id="modalMsg" class="modal-msg">내용</div>
       <div class="modal-btn-group">
         <button id="modalBtnCancel" class="modal-btn cancel" style="display:none;" onclick="closeModal()">취소</button>
         <button id="modalBtnConfirm" class="modal-btn confirm" onclick="closeModal()">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="graphModal" class="modal-overlay">
+    <div class="modal-box">
+      <span class="close-icon" onclick="closeGraphModal()">&times;</span>
+      <div id="graphTitle" class="modal-title" style="margin-bottom: 10px;">등급 추이</div>
+      <div style="position: relative; height: 300px; width: 100%;">
+        <canvas id="trendChart"></canvas>
       </div>
     </div>
   </div>
@@ -161,6 +176,7 @@
     var onModalConfirm = null;
     var isAutoFilling = false;
     var fetchedStudentData = null; 
+    var myChart = null; // 차트 인스턴스 저장용
 
     document.addEventListener('contextmenu', function(event) { event.preventDefault(); });
 
@@ -456,17 +472,148 @@
       }
     }
 
-    // [수정됨] 일반 과목 헤더 삭제 & 모의고사 헤더 유지 로직
+    // 과목명 정규화 (그래프용)
+    function normalizeSubjectName(name) {
+      if(!name) return "";
+      var n = name.replace(/\s/g, ""); // 공백 제거
+      if (n.includes("화법과작문")) return "국어";
+      if (n.includes("언어와매체")) return "국어"; // 혹시 몰라 추가
+      if (n.includes("국어")) return "국어";
+
+      if (n.includes("확률과통계")) return "수학";
+      if (n.includes("미적분")) return "수학";
+      if (n.includes("기하")) return "수학";
+      if (n.includes("수학")) return "수학";
+
+      if (n.includes("영어")) return "영어";
+      return name; // 그 외는 그대로
+    }
+
+    // [New] 그래프 데이터 보여주기
+    function showTrendGraph(subjectName) {
+      var targetSubject = normalizeSubjectName(subjectName);
+      if (!['국어', '수학', '영어'].includes(targetSubject)) return;
+
+      var trendData = []; // { label: '1-3월', score: 3, sortKey: 103 }
+
+      // 전체 데이터 순회하며 모의고사 데이터 수집
+      if (globalScoreData && globalScoreData.length > 0) {
+        globalScoreData.forEach(function(gradeNode) {
+          var gradeNum = parseInt(gradeNode.name.replace(/[^0-9]/g, "")) || 0;
+          if (!gradeNode.semesters) return;
+
+          gradeNode.semesters.forEach(function(semNode) {
+            // 모의고사 여부 확인 (과목 안에 '등급' 카테고리가 있는지로 간접 확인하거나, 학기명으로 추론)
+            // 여기서는 학기명(월)과 내부의 '등급' 카테고리 존재 여부를 모두 확인
+            if (!semNode.subjects) return;
+
+            // 해당 학기에 목표 과목(국/영/수)의 '등급' 데이터가 있는지 확인
+            semNode.subjects.forEach(function(subNode) {
+              var currentSubName = normalizeSubjectName(subNode.items[0].item); // item 이름이나 subNode.name 사용
+              // *주의: subNode.name은 과목명(국어), subNode.items는 상세항목.
+              // 구조: subNode.name = "국어", items=[{category:"등급", items:[{item:"국어", score:3}]}]
+              
+              // 정확한 과목명 매칭 (통합된 이름으로)
+              if (normalizeSubjectName(subNode.name) !== targetSubject) return;
+
+              // '등급' 카테고리 찾기
+              var gradeCategory = subNode.items.find(function(c) { return c.category === "등급"; });
+              if (gradeCategory) {
+                 // 등급 점수 찾기 (보통 items의 첫번째 혹은 이름이 과목명인 것)
+                 var scoreItem = gradeCategory.items.find(function(it) { 
+                   return !isNaN(parseFloat(it.score)); 
+                 });
+                 
+                 if (scoreItem) {
+                   var score = parseFloat(scoreItem.score);
+                   var monthStr = semNode.name.replace(/[^0-9]/g, ""); // "3월" -> "3"
+                   var monthNum = parseInt(monthStr) || 0;
+                   
+                   // X축 라벨: "1-3월"
+                   var label = gradeNum + "-" + monthNum + "월";
+                   // 정렬 키: 103 (1학년 3월), 211 (2학년 11월)
+                   var sortKey = gradeNum * 100 + monthNum;
+
+                   trendData.push({ label: label, score: score, sortKey: sortKey });
+                 }
+              }
+            });
+          });
+        });
+      }
+
+      if (trendData.length === 0) {
+        showAlert("알림", targetSubject + " 과목의 모의고사 데이터가 없습니다.");
+        return;
+      }
+
+      // 시간순 정렬
+      trendData.sort(function(a, b) { return a.sortKey - b.sortKey; });
+
+      // 차트 모달 열기
+      document.getElementById('graphTitle').innerText = targetSubject + " 등급 추이";
+      document.getElementById('graphModal').style.display = 'flex';
+
+      // 차트 그리기
+      var ctx = document.getElementById('trendChart').getContext('2d');
+      if (myChart) myChart.destroy(); // 기존 차트 삭제
+
+      myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: trendData.map(d => d.label),
+          datasets: [{
+            label: '등급',
+            data: trendData.map(d => d.score),
+            borderColor: '#4285F4',
+            backgroundColor: 'rgba(66, 133, 244, 0.1)',
+            borderWidth: 2,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: '#4285F4',
+            pointRadius: 5,
+            fill: true,
+            tension: 0.3 // 곡선
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              min: 0.5, // 1등급이 잘 보이게 여유
+              max: 9.5,
+              reverse: true, // 1등급이 위로 가도록 반전
+              ticks: { stepSize: 1, callback: function(val) { return Number.isInteger(val)? val : ""; } },
+              grid: { color: '#f0f0f0' }
+            },
+            x: {
+              grid: { display: false }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) { return context.raw + ' 등급'; }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function closeGraphModal() {
+      document.getElementById('graphModal').style.display = 'none';
+    }
+
+    // HTML 생성 (클릭 이벤트 추가됨)
     function getTableHTML(categoryList) {
       var isMockExam = categoryList.some(function(c) { return c.category === "등급"; });
-      
       var html = '<table>';
       
-      // 모의고사인 경우에만 헤더(<thead>)를 추가
       if (isMockExam) {
          html += '<thead><tr><th>과목</th><th>등급</th></tr></thead>';
       }
-      // 일반 시험의 경우 헤더 생성 코드를 아예 작성하지 않음 (삭제됨)
       
       html += '<tbody>';
       
@@ -499,10 +646,26 @@
             var itemName = displayItems[i].item;
             var itemScore = displayItems[i].score;
             var scoreStyle = "";
+            
+            // [New] 모의고사이고 국/영/수(통합포함)인 경우 클릭 이벤트 추가
+            var normalized = normalizeSubjectName(itemName);
+            var isTarget = ['국어','수학','영어'].includes(normalized);
+            var clickAttr = "";
+            var nameClass = "";
+
+            if (isMockExam && isTarget) {
+               clickAttr = 'onclick="showTrendGraph(\'' + itemName + '\')"';
+               nameClass = 'class="clickable-subject"';
+            }
+
             if (itemName.indexOf("객관식") > -1 || itemName.indexOf("주관식") > -1) {
                scoreStyle = 'style="font-weight: normal; color: #555;"'; 
             }
-            html += '<tr class="item-row"><td>' + itemName + '</td><td ' + scoreStyle + '>' + itemScore + '</td></tr>';
+
+            html += '<tr class="item-row">';
+            html += '  <td ' + nameClass + ' ' + clickAttr + '>' + itemName + '</td>';
+            html += '  <td ' + scoreStyle + '>' + itemScore + '</td>';
+            html += '</tr>';
           }
         }
       } else {
