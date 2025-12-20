@@ -24,7 +24,6 @@
     .container { 
       background: white; 
       max-width: 500px; 
-      /* [수정] 상단 여백 최소화 */
       margin: 10px auto; 
       padding: 30px; 
       border-radius: 12px; 
@@ -35,23 +34,34 @@
     h2 { color: #333; margin-bottom: 25px; }
     p { color: #666; font-size: 14px; margin-bottom: 15px; }
 
-    /* 개발자 브랜드 로고 스타일 (기본 화면용) */
+    /* [수정됨] 헤더 바 (로그인 전 화면용 - Flexbox 적용) */
+    .header-bar {
+      display: flex;
+      justify-content: space-between; /* 양쪽 끝 정렬 */
+      align-items: center;
+      margin-bottom: 10px; /* 제목과의 간격 */
+      width: 100%;
+    }
+
+    /* 개발자 브랜드 로고 스타일 (absolute 제거 및 통합) */
     .developer-brand {
-      position: absolute;
-      top: 20px; right: 25px;
-      font-size: 11px; color: #b0b0b0;        
+      font-size: 11px; 
+      color: #b0b0b0;        
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      z-index: 10; text-transform: uppercase; cursor: default; opacity: 0.8;
+      text-transform: uppercase; 
+      cursor: default; 
+      opacity: 0.8;
+      /* position: absolute 제거됨 */
     }
     .developer-brand:hover { opacity: 1; color: #4285F4; transition: 0.3s; }
 
-    /* 업데이트 날짜 표시 (기본 화면용) */
+    /* 업데이트 날짜 표시 (absolute 제거 및 통합) */
     .last-updated {
-      position: absolute;
-      top: 20px; left: 25px;
-      font-size: 11px; color: #b0b0b0;        
+      font-size: 11px; 
+      color: #b0b0b0;        
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      z-index: 10; cursor: default;
+      cursor: default;
+      /* position: absolute 제거됨 */
     }
     
     /* 입력창 */
@@ -60,7 +70,7 @@
       user-select: text; -webkit-user-select: text;
     }
     input:focus { border-color: #4285F4; outline: none; }
-    #inputSearch::placeholder { color: #cccccc; opacity: 1; } /* 옅은 회색 설정 */
+    #inputSearch::placeholder { color: #cccccc; opacity: 1; }
     
     .btn { width: 100%; padding: 14px; background-color: #4285F4; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
     .btn:hover { background-color: #3367d6; }
@@ -70,23 +80,21 @@
     .step-area { display: none; }
     #step1 { display: block; } 
     
-    /* [수정] Step 3 결과 화면용 통합 고정 헤더 스타일 */
+    /* Step 3 결과 화면용 통합 고정 헤더 스타일 */
     .step3-sticky-header {
       position: sticky; 
       top: 0; 
       z-index: 100;
       background-color: white; 
       
-      /* 컨테이너의 padding(30px)을 상쇄하여 상단에 딱 붙임 */
       margin-top: -30px; 
       margin-left: -30px; 
       margin-right: -30px;
       
-      /* 내부 여백 재설정 */
       padding: 15px 30px 20px 30px; 
       
-      border-radius: 12px 12px 0 0; /* 컨테이너 둥근 모서리와 일치 */
-      border-bottom: 2px solid #4285F4; /* 파란색 밑줄 */
+      border-radius: 12px 12px 0 0; 
+      border-bottom: 2px solid #4285F4; 
       margin-bottom: 20px;
     }
 
@@ -111,8 +119,8 @@
 
     /* 뱃지 스타일 */
     .grade-badge {
-      background-color: #e8f0fe; color: #1967d2;             
-      padding: 2px 8px; border-radius: 12px;        
+      background-color: #e8f0fe; color: #1967d2;              
+      padding: 2px 8px; border-radius: 12px;         
       font-size: 13px; font-weight: bold;
       vertical-align: middle;
       display: inline-block; transition: 0.3s;
@@ -154,7 +162,7 @@
       display: inline-flex; align-items: center; justify-content: center;
       width: 22px; height: 22px;
       background-color: rgba(255, 77, 79, 0.5); 
-      border-radius: 6px;         
+      border-radius: 6px;           
       margin-left: 8px;
       vertical-align: middle;
       transition: 0.2s;
@@ -202,8 +210,11 @@
 </head>
 <body>
   <div class="container">
-    <div id="lastUpdatedDisplay" class="last-updated"></div>
-    <div class="developer-brand">ⓒ JEONGKAPSU</div>
+    
+    <div id="mainHeaderBar" class="header-bar">
+      <div id="lastUpdatedDisplay" class="last-updated"></div>
+      <div class="developer-brand">ⓒ JEONGKAPSU</div>
+    </div>
 
     <h2 id="mainTitle">광남고 성적 조회</h2>
     
@@ -287,9 +298,8 @@
         document.querySelectorAll('.step-area').forEach(el => el.style.display = 'none');
         document.getElementById('step3-result').style.display = 'none';
         
-        // [수정] 메인 화면으로 돌아오면 원래 날짜/로고 다시 표시
-        document.getElementById('lastUpdatedDisplay').style.display = 'block';
-        document.querySelector('.developer-brand').style.display = 'block';
+        // [수정] 메인 화면으로 돌아오면 헤더바(날짜/로고) 다시 표시 (Flex 방식)
+        document.getElementById('mainHeaderBar').style.display = 'flex';
 
         var showMainTitle = true;
         if (event.state && event.state.step) {
@@ -299,9 +309,8 @@
                 document.querySelector('.container').style.maxWidth = 'none'; 
                 showMainTitle = false;
                 
-                // 결과 화면으로 직접 popstate 된 경우 다시 숨김 처리
-                document.getElementById('lastUpdatedDisplay').style.display = 'none';
-                document.querySelector('.developer-brand').style.display = 'none';
+                // 결과 화면으로 직접 popstate 된 경우 헤더바 숨김 (결과화면 전용 헤더 사용)
+                document.getElementById('mainHeaderBar').style.display = 'none';
             } else if (target === 'step2-login' || target === 'step2-register') {
                 document.getElementById(target).style.display = 'block';
                 document.querySelector('.container').style.maxWidth = '500px';
@@ -363,7 +372,6 @@
     function showSelectionList(matches, isAdmin) {
       resetModalState();
       var modalBox = document.getElementById('commonModalBox');
-      // [수정] 너비 자동 조절 (내용에 맞게)
       modalBox.style.width = "auto";
       
       document.getElementById('modalTitle').innerText = "학생 선택";
@@ -374,11 +382,9 @@
       optContainer.innerHTML = ""; 
       optContainer.style.display = 'flex';
       
-      // matches: [{id, name, data}, ...]
       matches.forEach(function(m) {
         var btn = document.createElement('button');
         btn.className = 'option-btn';
-        // "이름, 학번" 형식으로 표시
         btn.innerText = m.name + ", " + m.id;
         btn.onclick = function() { 
             closeModal(); 
@@ -432,7 +438,6 @@
 
                 Object.keys(allData).forEach(function(key) {
                     var sData = allData[key];
-                    // [수정 포인트] 이름 뿐만 아니라 학번(key)도 정규식으로 검사
                     if (regex.test(sData.name) || regex.test(key)) {
                         matches.push({ id: key, name: sData.name, data: sData });
                     }
@@ -443,7 +448,6 @@
         }
         // 2. 일반 검색 (숫자면 학번, 아니면 이름)
         else {
-            // 숫자로만 구성되어 있으면 학번으로 간주 (정확히 일치하는 경우)
             if (/^\d+$/.test(rawVal)) {
                 db.ref('students/' + rawVal).once('value').then(function(snapshot) {
                     btn.innerHTML = "조회하기"; btn.disabled = false;
@@ -456,7 +460,6 @@
                     }
                 });
             } else {
-                // 이름으로 검색 (정확히 일치하는 경우)
                 db.ref('students').orderByChild('name').equalTo(rawVal).once('value').then(function(snapshot) {
                     btn.innerHTML = "조회하기"; btn.disabled = false;
                     if (snapshot.exists()) {
@@ -474,7 +477,6 @@
     }
 
     function handleSearchResults(matches, isAdmin) {
-        // 학번순 정렬 (숫자로 변환해서 비교)
         matches.sort(function(a, b) {
             return parseInt(a.id) - parseInt(b.id);
         });
@@ -482,10 +484,8 @@
         if (matches.length === 0) {
             showAlert("알림", "일치하는 학생이 없습니다.");
         } else if (matches.length === 1) {
-            // 한 명이면 바로 진행
             proceedWithSelection(matches[0], isAdmin);
         } else {
-            // 여러 명이면 선택 모달
             showSelectionList(matches, isAdmin);
         }
     }
@@ -494,7 +494,6 @@
         currentId = studentObj.id;
         currentName = studentObj.name;
         
-        // 데이터 캐싱
         studentObj.data.key = currentId;
         fetchedStudentData = studentObj.data;
         localStorage.setItem('cached_student_data', JSON.stringify(fetchedStudentData));
@@ -507,14 +506,12 @@
         document.getElementById('step1').style.display = 'none';
 
         if (isAdmin) {
-            // 관리자 모드: 비밀번호 없이 바로 통과 (특수 토큰 사용)
             loadScoreAndShow("##ADMIN_FREE_PASS##");
         } else {
-            // 일반 모드: 비밀번호 존재 여부에 따라 분기
             var storedPw = fetchedStudentData.pw ? String(fetchedStudentData.pw).trim() : "";
             if (storedPw !== "") {
                 document.getElementById('step2-login').style.display = 'block';
-                document.getElementById('loginPw').value = ""; // 초기화
+                document.getElementById('loginPw').value = ""; 
                 document.getElementById('loginPw').focus();
                 history.pushState({ step: 'step2-login' }, 'login', '');
             } else {
@@ -577,34 +574,29 @@
          document.querySelectorAll('.step-area').forEach(el => el.style.display = 'none');
          document.getElementById('mainTitle').style.display = 'none';
          
-         // [수정] 결과 화면에서는 원래 있던 날짜와 로고를 숨깁니다 (새로 만든 헤더에 넣을 것이므로)
-         document.getElementById('lastUpdatedDisplay').style.display = 'none';
-         document.querySelector('.developer-brand').style.display = 'none';
+         // [수정] 결과 화면에서는 기본 헤더 바(Wrapper)를 통째로 숨김
+         document.getElementById('mainHeaderBar').style.display = 'none';
 
          document.getElementById('step3-result').style.display = 'block';
          
          history.pushState({ step: 'step3' }, 'result', '');
          globalScoreData = fetchedStudentData.scores || [];
          
-         // 현재 표시된 업데이트 날짜 텍스트 가져오기
          var dateText = document.getElementById('lastUpdatedDisplay').innerText;
 
-         // [수정] 헤더 전체를 감싸는 sticky-header 생성
          var html = '<div class="step3-sticky-header">';
          
-         // 1. 날짜와 브랜드 로고 (상단 배치)
          html += '  <div class="step3-header-top">';
          html += '    <span class="step3-date">' + dateText + '</span>';
          html += '    <span class="step3-brand">ⓒ JEONGKAPSU</span>';
          html += '  </div>';
          
-         // 2. 학생 이름과 학번 (그 아래 배치)
          html += '  <div class="step3-title">';
          html += '    <span style="color:#4285F4">' + currentName + '</span> ';
          html += '    <span style="color:#34a853; font-size: 0.9em;">(' + currentId + ')</span> 학생의 성적표';
          html += '  </div>';
          
-         html += '</div>'; // sticky-header 닫기
+         html += '</div>';
 
          html += '<div id="accordionArea"></div>';
          html += '<button class="btn btn-secondary" onclick="resetAll()">로그아웃</button>';
@@ -613,7 +605,6 @@
          renderAccordionTree(globalScoreData, document.getElementById('accordionArea'));
        } else {
          showAlert("조회 실패", "비밀번호가 틀렸습니다.");
-         // 로그인 실패 시 다시 로그인창 유지
          document.getElementById('step2-login').style.display = 'block';
          document.getElementById('loginPw').value = "";
        }
