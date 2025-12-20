@@ -162,20 +162,34 @@
       font-weight: bold; 
     }
 
-    /* [수정] 더 깔끔한 선형 아이콘 스타일 */
-    .trend-icon-svg {
-      width: 20px;
-      height: 20px;
+    /* [수정] 붉은색 둥근 모서리 뱃지 스타일 */
+    .trend-icon-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;            /* 뱃지 너비 */
+      height: 22px;           /* 뱃지 높이 */
+      background-color: #dc3545; /* 빨간색 배경 */
+      border-radius: 6px;     /* 둥근 모서리 */
+      margin-left: 8px;
       vertical-align: middle;
-      margin-left: 6px;
-      stroke: #bbb; /* 선 색상 (채우기 없음) */
-      fill: none;
       transition: 0.2s;
     }
-    /* 호버시 아이콘 색상 진하게 */
-    .clickable-cell:hover .trend-icon-svg {
-      stroke: #4285F4; 
+    /* 호버 시 뱃지 색상 */
+    .clickable-cell:hover .trend-icon-badge {
+      background-color: #c82333; /* 조금 더 진한 빨간색 */
       transform: scale(1.1);
+    }
+
+    /* [수정] 내부 흰색 SVG 아이콘 스타일 */
+    .trend-icon-svg {
+      width: 14px;            /* 아이콘 크기 */
+      height: 14px;
+      stroke: #ffffff;        /* 흰색 선 */
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
     
     /* 모달 */
@@ -872,7 +886,7 @@
       document.getElementById('graphModal').style.display = 'none';
     }
 
-    // [수정] 더 깔끔한 아이콘으로 교체
+    // [수정] 원하는 스타일의 아이콘으로 교체
     function getTableHTML(categoryList) {
       var isMockExam = categoryList.some(function(c) { return c.category === "등급"; });
       var html = '<table>';
@@ -934,8 +948,14 @@
                clickAttr = 'onclick="showTrendGraph(\'' + itemName + '\')"';
                cellClass = 'class="clickable-cell"'; 
                
-               // [수정] 새로운 깔끔한 선형 그래프 아이콘 (SVG)
-               iconHtml = '<svg class="trend-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>';
+               // [수정] 붉은색 둥근 뱃지 안에 흰색 X,Y축 상승 그래프 SVG 아이콘
+               iconHtml = '<span class="trend-icon-badge">' +
+                          '<svg class="trend-icon-svg" viewBox="0 0 24 24">' +
+                            '<path d="M2 20 L22 20 M2 4 L2 20" stroke-width="1.5"></path>' + // X,Y축
+                            '<polyline points="5 15 10 8 15 12 20 4"></polyline>' + // 상승 그래프
+                            '<polyline points="16 4 20 4 20 8"></polyline>' + // 화살표 헤드
+                          '</svg>' +
+                          '</span>';
             }
 
             if (itemName.indexOf("객관식") > -1 || itemName.indexOf("주관식") > -1) {
