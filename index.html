@@ -96,7 +96,7 @@
 
     /* 뱃지 스타일 (등급 표시용) */
     .grade-badge {
-      background-color: #e8f0fe; /* 기본: 연한 파랑 */
+      background-color: #e8f0fe; 
       color: #1967d2;            
       padding: 2px 8px;
       border-radius: 12px;       
@@ -105,10 +105,9 @@
       margin-left: 8px;
       vertical-align: middle;
       display: inline-block;
-      transition: 0.3s; /* 색상 변경 시 부드럽게 */
+      transition: 0.3s;
     }
-
-    /* [추가] 버튼이 활성화(펼침)되었을 때 뱃지 배경을 흰색으로 변경 */
+    /* 버튼이 활성화(펼침)되었을 때 뱃지 배경을 흰색으로 변경 */
     .accordion-btn.active .grade-badge {
       background-color: #ffffff;
     }
@@ -144,9 +143,31 @@
     .item-row td:nth-child(2) { text-align: center; font-weight: bold; color: #333; }
     .item-row:last-child td { border-bottom: none; }
 
-    /* 클릭 가능한 과목 (그래프용) */
-    .clickable-subject { color: #1a73e8; text-decoration: underline; cursor: pointer; }
-    .clickable-subject:hover { color: #0d47a1; }
+    /* [수정] 클릭 가능한 과목 (그래프용) - 밑줄 제거 및 아이콘 정렬 */
+    .clickable-subject { 
+      color: #333; 
+      text-decoration: none !important; /* 밑줄 강제 제거 */
+      cursor: pointer; 
+      display: inline-flex; /* 텍스트와 아이콘 가로 정렬 */
+      align-items: center;  /* 수직 중앙 정렬 */
+      transition: 0.2s;
+    }
+    .clickable-subject:hover { 
+      color: #1a73e8; /* 호버 시 텍스트 색상 변경 */
+    }
+
+    /* [추가] 그래프 아이콘 스타일 */
+    .graph-icon {
+      width: 16px;
+      height: 16px;
+      margin-left: 6px;
+      stroke: #999; /* 기본 회색 */
+      transition: 0.2s;
+    }
+    .clickable-subject:hover .graph-icon {
+      stroke: #1a73e8; /* 호버 시 아이콘 파란색 */
+      transform: scale(1.1); /* 살짝 커짐 */
+    }
     
     /* 모달 */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
@@ -253,7 +274,6 @@
     var fetchedStudentData = null; 
     var myChart = null; 
 
-    // [캐싱] 서버 버전 정보 저장 변수
     var serverVersion = 0; 
 
     document.addEventListener('contextmenu', function(event) { event.preventDefault(); });
@@ -288,7 +308,6 @@
         document.getElementById('mainTitle').style.display = showMainTitle ? 'block' : 'none';
     };
 
-    // ---------------- [캐싱 로직] ----------------
     function checkAppVersion() {
       db.ref('info').once('value').then(function(snapshot) {
         if (snapshot.exists()) {
@@ -602,7 +621,6 @@
        }
     }
 
-    // [수정] 뱃지 스타일 적용 (renderAccordionTree)
     function renderAccordionTree(data, container) {
       if (!data || data.length === 0) {
         container.innerHTML = '<p style="padding:20px; text-align:center;">등록된 성적 데이터가 없습니다.</p>';
@@ -845,6 +863,7 @@
       document.getElementById('graphModal').style.display = 'none';
     }
 
+    // [수정] 과목명 옆에 그래프 아이콘 추가 로직
     function getTableHTML(categoryList) {
       var isMockExam = categoryList.some(function(c) { return c.category === "등급"; });
       var html = '<table>';
@@ -900,10 +919,15 @@
             var isTarget = ['국어','수학','영어'].includes(normalized);
             var clickAttr = "";
             var nameClass = "";
+            
+            // [수정] 아이콘 HTML 준비
+            var iconHtml = "";
 
             if (isMockExam && isTarget) {
                clickAttr = 'onclick="showTrendGraph(\'' + itemName + '\')"';
                nameClass = 'class="clickable-subject"';
+               // 그래프 아이콘 (SVG)
+               iconHtml = '<svg class="graph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>';
             }
 
             if (itemName.indexOf("객관식") > -1 || itemName.indexOf("주관식") > -1) {
@@ -911,7 +935,8 @@
             }
 
             html += '<tr class="item-row">';
-            html += '  <td ' + nameClass + ' ' + clickAttr + '>' + itemName + '</td>';
+            // [수정] 아이콘을 과목명 뒤에 추가
+            html += '  <td ' + nameClass + ' ' + clickAttr + '>' + itemName + iconHtml + '</td>';
             html += '  <td ' + scoreStyle + '>' + itemScore + '</td>';
             html += '</tr>';
           }
