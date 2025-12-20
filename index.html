@@ -82,12 +82,16 @@
     .accordion-btn:hover { background-color: #f9f9f9; }
     .accordion-btn.active { background-color: #e8f0fe; color: #1967d2; border-bottom: none; }
 
+    /* [수정] 버튼 내부 그룹 정렬용 클래스 */
+    .accordion-header-group { display: flex; align-items: center; gap: 8px; }
+
     /* 뱃지 스타일 (파란색 등급 표시용) */
     .grade-badge {
       background-color: #e8f0fe; color: #1967d2;            
       padding: 2px 8px; border-radius: 12px;       
       font-size: 13px; font-weight: bold;
-      margin-left: 8px; vertical-align: middle;
+      /* margin-left 삭제 (gap으로 처리) */
+      vertical-align: middle;
       display: inline-block; transition: 0.3s;
     }
     .accordion-btn.active .grade-badge { background-color: #ffffff; }
@@ -127,13 +131,13 @@
     .trend-badge {
       display: inline-flex; align-items: center; justify-content: center;
       width: 22px; height: 22px;
-      background-color: rgba(255, 77, 79, 0.5); /* 빨간색 배경 */
-      border-radius: 6px;        /* 둥근 모서리 */
-      margin-left: 8px;
+      background-color: rgba(255, 77, 79, 0.5); 
+      border-radius: 6px;        
+      /* margin-left 삭제 (gap으로 처리) */
       vertical-align: middle;
       transition: 0.2s;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      cursor: pointer; /* 클릭 가능 표시 */
+      cursor: pointer; 
     }
     
     .trend-badge:hover {
@@ -572,6 +576,37 @@
        }
     }
 
+    // [신규 함수] 특정 내신 과목의 데이터 존재 여부 확인
+    function hasInternalHistory(targetSubject) {
+       if (!globalScoreData || globalScoreData.length === 0) return false;
+       for (var i = 0; i < globalScoreData.length; i++) {
+         var gradeNode = globalScoreData[i];
+         if (gradeNode.semesters) {
+           for (var j = 0; j < gradeNode.semesters.length; j++) {
+             var semNode = gradeNode.semesters[j];
+             if (semNode.subjects) {
+               for (var k = 0; k < semNode.subjects.length; k++) {
+                 var subNode = semNode.subjects[k];
+                 var norm = normalizeInternalSubjectName(subNode.name);
+                 if (norm === targetSubject) {
+                    if (subNode.items) {
+                       var totalCat = subNode.items.find(function(c) { return c.category === "종합"; });
+                       if (totalCat) {
+                         var gradeItem = totalCat.items.find(function(i) { return i.item === "등급"; });
+                         if (gradeItem && !isNaN(parseFloat(gradeItem.score))) {
+                           return true; // 하나라도 찾으면 true
+                         }
+                       }
+                    }
+                 }
+               }
+             }
+           }
+         }
+       }
+       return false;
+    }
+
     // [수정] renderAccordionTree
     function renderAccordionTree(data, container) {
       if (!data || data.length === 0) {
@@ -611,16 +646,17 @@
                      }
                    }
                  }
-                 // 뱃지 및 아이콘 설정
-                 var btnLabel = '<span>' + subjectNode.name + '</span>';
+                 
+                 // [수정] 버튼 라벨 구성: 왼쪽 그룹핑
+                 var leftGroupHtml = '<span>' + subjectNode.name + '</span>';
                  if (gradeText) {
-                    btnLabel += '<span class="grade-badge">' + gradeText + '등급</span>';
+                    leftGroupHtml += '<span class="grade-badge">' + gradeText + '등급</span>';
                  }
 
-                 // [신규] 내신 등급 그래프 아이콘 (과목명 통합 확인)
+                 // [수정] 내신 등급 그래프 아이콘 (데이터 존재 여부 확인 추가)
                  var normSubject = normalizeInternalSubjectName(subjectNode.name);
-                 if (normSubject) { 
-                    btnLabel += '<span class="trend-badge" onclick="event.stopPropagation(); showInternalTrendGraph(\'' + normSubject + '\')">' +
+                 if (normSubject && hasInternalHistory(normSubject)) { 
+                    leftGroupHtml += '<span class="trend-badge" onclick="event.stopPropagation(); showInternalTrendGraph(\'' + normSubject + '\')">' +
                               '<svg class="trend-svg" viewBox="0 0 24 24">' +
                                 '<path d="M4 4 L4 20 L20 20" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
                                 '<polyline points="7 16 11 12 15 14 19 8" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
@@ -630,7 +666,8 @@
 
                  var subjectBtn = document.createElement('button');
                  subjectBtn.className = 'accordion-btn level-3';
-                 subjectBtn.innerHTML = btnLabel + '<span class="arrow"></span>';
+                 // [수정] HTML 구조: 좌측 그룹(div) + 우측 화살표
+                 subjectBtn.innerHTML = '<div class="accordion-header-group">' + leftGroupHtml + '</div><span class="arrow"></span>';
 
                  var subjectPanel = document.createElement('div');
                  subjectPanel.className = 'panel';
@@ -653,6 +690,7 @@
     function createAccordionBtn(text, levelClass) {
       var btn = document.createElement('button');
       btn.className = 'accordion-btn ' + levelClass;
+      // 레벨 버튼은 단순 텍스트
       btn.innerHTML = '<span>' + text + '</span><span class="arrow"></span>';
       return btn;
     }
@@ -686,30 +724,25 @@
       return name;
     }
     
-    // [신규] 내신 과목명 통합 함수
     function normalizeInternalSubjectName(name) {
       if (!name) return null;
-      var n = name.replace(/\s/g, ""); // 공백 제거
+      var n = name.replace(/\s/g, ""); 
 
-      // 1. 국어
       if (['공통국어1','공통국어2','문학','독서','화법과언어','국어','화법과작문'].includes(n) || n.indexOf('공통국어') > -1) {
           return "국어";
       }
-      // 2. 수학
       if (['공통수학1','공통수학2','대수','미적분Ⅰ','미적분I','확률과통계','수학','수학Ⅰ','수학I','수학Ⅱ','수학II','미적분'].includes(n) || n.indexOf('공통수학') > -1) {
           return "수학";
       }
-      // 3. 영어
       if (['공통영어1','공통영어2','영어Ⅰ','영어I','영어Ⅱ','영어II','영어독해와작문','영어'].includes(n) || n.indexOf('공통영어') > -1) {
           return "영어";
       }
       return null;
     }
 
-    // [신규] 내신 등급 추이 그래프
     function showInternalTrendGraph(targetSubject) {
-      var trendDataMap = {}; // "1-1": score 형태
-      var hasCommonSubject = false; // "공통" 과목 포함 여부 체크 (교육과정 구분용)
+      var trendDataMap = {}; 
+      var hasCommonSubject = false; 
 
       if (globalScoreData && globalScoreData.length > 0) {
         globalScoreData.forEach(function(gradeNode) {
@@ -717,20 +750,16 @@
           if (!gradeNode.semesters) return;
           
           gradeNode.semesters.forEach(function(semNode) {
-            // 학기 번호 추출 (1학기=1, 2학기=2)
             var semNum = semNode.name.indexOf("1") > -1 ? 1 : (semNode.name.indexOf("2") > -1 ? 2 : 0);
             if (!semNode.subjects) return;
 
             semNode.subjects.forEach(function(subNode) {
-               // 전체 데이터 스캔하여 "공통" 포함 여부 체크 (Y축 결정용)
                if (subNode.name.indexOf("공통") > -1) {
                   hasCommonSubject = true;
                }
 
-               // 통합된 과목명이 타겟과 일치하는지 확인
                var normName = normalizeInternalSubjectName(subNode.name);
                if (normName === targetSubject) {
-                  // "종합" -> "등급" 찾기
                   if (subNode.items) {
                      var totalCat = subNode.items.find(function(c) { return c.category === "종합"; });
                      if (totalCat) {
@@ -748,20 +777,17 @@
         });
       }
 
-      // X축: 6개 슬롯 고정 (1-1, 1-2, 2-1, 2-2, 3-1, 3-2)
       var fixedSlots = ["1-1", "1-2", "2-1", "2-2", "3-1", "3-2"];
       var scores = fixedSlots.map(function(slot) {
          return trendDataMap[slot] !== undefined ? trendDataMap[slot] : null;
       });
 
-      // 데이터가 아예 없으면 알림
       var hasData = scores.some(s => s !== null);
       if (!hasData) {
         showAlert("알림", targetSubject + " 과목의 등급 데이터가 없습니다.");
         return;
       }
 
-      // Y축 최대값 설정: "공통"이 포함되어 있으면 5등급제(Max 5), 아니면 9등급제(Max 9)
       var yMax = hasCommonSubject ? 5 : 9;
 
       document.getElementById('graphTitle').innerText = targetSubject + " (내신) 등급 추이";
@@ -773,11 +799,11 @@
       myChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: ["1-1", "1-2", "2-1", "2-2", "3-1", "3-2"], // 내부 로직용 라벨
+          labels: ["1-1", "1-2", "2-1", "2-2", "3-1", "3-2"], 
           datasets: [{
             label: '등급',
             data: scores,
-            borderColor: '#34a853', // 내신은 초록색 계열
+            borderColor: '#34a853',
             backgroundColor: 'rgba(52, 168, 83, 0.1)',
             borderWidth: 2,
             pointBackgroundColor: '#fff',
@@ -785,7 +811,7 @@
             pointRadius: 5,
             fill: true,
             tension: 0.2,
-            spanGaps: false // 데이터가 없으면 선을 잇지 않음
+            spanGaps: false 
           }]
         },
         options: {
@@ -795,16 +821,23 @@
           scales: {
             y: {
               min: 0.5, 
-              max: yMax, // 5 또는 9
-              reverse: true, // 1등급이 위로 가게
-              ticks: { stepSize: 1, padding: 10, callback: function(val) { if (val < 1 || val === yMax + 0.5) return ""; return Math.floor(val); } },
+              max: yMax,
+              reverse: true,
+              // [수정] 9등급(또는 yMax)일 때 빈 문자열 반환
+              ticks: { 
+                stepSize: 1, 
+                padding: 10, 
+                callback: function(val) { 
+                  if (val < 1 || val === yMax + 0.5 || val === yMax) return ""; 
+                  return Math.floor(val); 
+                } 
+              },
               grid: { color: '#f0f0f0' }
             },
             x: {
               offset: true, 
               grid: { display: false },
               ticks: {
-                // 라벨 커스텀: 1-1 -> "1학년", 2-1 -> "2학년", 3-1 -> "3학년"
                 callback: function(val, index) {
                    var mapping = { 0: "1학년", 2: "2학년", 4: "3학년" };
                    return mapping[index] || "";
@@ -829,7 +862,6 @@
       });
     }
 
-    // 모의고사 그래프 함수 (기존 유지)
     function showTrendGraph(subjectName) {
       var targetSubject = normalizeSubjectName(subjectName);
       if (!['국어', '수학', '영어'].includes(targetSubject)) return;
@@ -901,6 +933,7 @@
           scales: {
             y: {
               min: 0.5, max: 9, reverse: true,
+              // [수정] 모의고사도 9 제거
               ticks: { stepSize: 1, padding: 10, callback: function(val) { if (val < 1 || val === 9) return ""; return Math.floor(val); } },
               grid: { color: '#f0f0f0' }
             },
