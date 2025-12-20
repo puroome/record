@@ -28,13 +28,13 @@
       padding: 30px; 
       border-radius: 12px; 
       box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-      position: relative; /* 로고 배치를 위한 기준점 */
+      position: relative; 
     }
     
     h2 { color: #333; margin-bottom: 25px; }
     p { color: #666; font-size: 14px; margin-bottom: 15px; }
 
-    /* --- 개발자 브랜드 로고 스타일 --- */
+    /* 개발자 브랜드 로고 스타일 */
     .developer-brand {
       position: absolute;
       top: 20px;
@@ -73,7 +73,7 @@
     .result-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #4285F4; padding-bottom: 15px; margin-bottom: 15px; }
     .header-text-group { font-size: 20px; font-weight: bold; color: #333; }
     
-    /* --- 아코디언 스타일 --- */
+    /* 아코디언 스타일 */
     .accordion-btn {
       background-color: #fff; color: #333; cursor: pointer; padding: 16px 12px; width: 100%; text-align: left;
       border: none; border-bottom: 1px solid #f0f0f0; outline: none; font-size: 16px; font-weight: bold;
@@ -119,7 +119,7 @@
     
     /* 모달 */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
-    .modal-box { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.25s; display: flex; flex-direction: column; gap: 15px; position: relative; }
+    .modal-box { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.25s; display: flex; flex-direction: column; gap: 15px; position: relative; transition: width 0.3s; }
     .modal-title { font-size: 19px; font-weight: bold; color: #333; margin-bottom: 5px; }
     .modal-msg { font-size: 15px; color: #555; line-height: 1.6; word-break: keep-all; }
     
@@ -128,9 +128,9 @@
     .modal-btn.confirm { background-color: #4285F4; color: white; }
     .modal-btn.cancel { background-color: #e0e0e0; color: #555; }
     
-    /* [추가됨] 동명이인 선택 버튼 스타일 */
+    /* 동명이인 선택 버튼 스타일 */
     .option-btn {
-      background-color: #f8f9fa; color: #333; padding: 14px;
+      background-color: #f8f9fa; color: #333; padding: 10px;
       border: 1px solid #ddd; border-radius: 8px; width: 100%;
       font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 5px;
       transition: 0.2s;
@@ -173,8 +173,8 @@
     <div id="step3-result" class="step-area"></div>
   </div>
 
-  <div id="customModal" class="modal-overlay">
-    <div class="modal-box" style="max-width: 380px;">
+  <div id="customModal" class="modal-overlay" onclick="if(event.target === this) closeModal()">
+    <div class="modal-box" id="commonModalBox" style="max-width: 380px;">
       <div id="modalTitle" class="modal-title">알림</div>
       <div id="modalMsg" class="modal-msg">내용</div>
       
@@ -254,7 +254,7 @@
 
     // ---------------- [수정] 모달 관련 함수들 ----------------
     function showAlert(title, msg, callback) {
-      resetModalState(); // 모달 초기화
+      resetModalState(); 
       document.getElementById('modalTitle').innerText = title;
       document.getElementById('modalMsg').innerHTML = msg.replace(/\n/g, "<br>");
       document.getElementById('modalBtnCancel').style.display = 'none';
@@ -264,7 +264,7 @@
     }
 
     function showConfirm(title, msg, yesCallback) {
-      resetModalState(); // 모달 초기화
+      resetModalState(); 
       document.getElementById('modalTitle').innerText = title;
       document.getElementById('modalMsg').innerHTML = msg;
       document.getElementById('modalBtnCancel').style.display = 'block';
@@ -273,18 +273,22 @@
       document.getElementById('customModal').style.display = 'flex';
     }
 
-    // [추가됨] 동명이인 선택 모달
     function showSelectionModal(name, ids, callback) {
-      resetModalState(); // 초기화
-      document.getElementById('modalTitle').innerText = "학번 선택";
-      document.getElementById('modalMsg').innerHTML = "동명이인이 존재합니다.<br>원하는 '" + name + "'의 학번을 선택하세요.";
+      resetModalState(); 
+      
+      // [수정됨] 이 모달은 너비를 60%로 줄임
+      var modalBox = document.getElementById('commonModalBox');
+      modalBox.style.width = "60%";
+      modalBox.style.maxWidth = "300px"; // 너무 커지지 않게 제한
 
-      // 기본 버튼 그룹 숨김
+      document.getElementById('modalTitle').innerText = "학번 선택";
+      // [수정됨] 줄바꿈 <br> 적용
+      document.getElementById('modalMsg').innerHTML = "동명이인이 있습니다.<br>찾는 '" + name + "'의 학번을 선택하세요.";
+
       document.getElementById('modalBtnGroup').style.display = 'none';
       
-      // 옵션 버튼 생성
       var optContainer = document.getElementById('modalOptions');
-      optContainer.innerHTML = ""; // 기존 내용 비움
+      optContainer.innerHTML = ""; 
       optContainer.style.display = 'flex';
 
       ids.forEach(function(id) {
@@ -302,7 +306,11 @@
     }
 
     function resetModalState() {
-      // 모달 상태를 기본(알림창)으로 되돌림
+      // [수정됨] 모달 스타일을 원래대로 복구
+      var modalBox = document.getElementById('commonModalBox');
+      modalBox.style.width = "90%";
+      modalBox.style.maxWidth = "380px";
+
       document.getElementById('modalOptions').style.display = 'none';
       document.getElementById('modalBtnGroup').style.display = 'flex';
       document.getElementById('modalBtnConfirm').onclick = function() { if (onModalConfirm) onModalConfirm(); else closeModal(); };
@@ -311,7 +319,6 @@
     function closeModal() { document.getElementById('customModal').style.display = 'none'; }
     // ---------------------------------------------------------
 
-    // ---------------- [수정] 자동 채우기 (동명이인 처리 포함) ----------------
     function autoFill(type) {
       if (isAutoFilling) return;
       var inputIds = document.getElementById('inputIds');
@@ -331,22 +338,18 @@
 
       var promise;
       if (type === 'id') {
-        // 학번 검색은 유니크하므로 그대로 유지
         promise = db.ref('students/' + searchVal).once('value').then(snap => {
            return snap.exists() ? { success: true, result: snap.val().name } : { success: false };
         });
       } else {
-        // [수정됨] 이름 검색: limitToFirst(1) 제거하여 모두 검색
         promise = db.ref('students').orderByChild('name').equalTo(searchVal).once('value').then(snap => {
            if (snap.exists()) {
              var count = snap.numChildren();
              if (count === 1) {
-               // 1명일 때: 바로 입력
                var foundId = Object.keys(snap.val())[0];
                return { success: true, result: foundId };
              } else {
-               // [추가] 2명 이상일 때: 선택 필요
-               var ids = Object.keys(snap.val()).sort(); // 학번순 정렬
+               var ids = Object.keys(snap.val()).sort(); 
                return { success: true, needSelect: true, ids: ids, name: searchVal };
              }
            } else { 
@@ -362,14 +365,12 @@
         
         if (response.success) {
           if (response.needSelect) {
-            // [추가] 동명이인 선택 모달 호출
-            targetInput.value = ""; // "자동 생성중..." 텍스트 지움
+            targetInput.value = ""; 
             showSelectionModal(response.name, response.ids, function(selectedId) {
               targetInput.value = selectedId;
               btn.focus();
             });
           } else {
-            // 기존 로직
             targetInput.value = response.result;
             btn.focus(); 
           }
@@ -379,7 +380,6 @@
         }
       });
     }
-    // ------------------------------------------------------------------
 
     function processStep1() {
       if (isAutoFilling) return;
@@ -647,8 +647,8 @@
       // 시간순 정렬
       trendData.sort(function(a, b) { return a.sortKey - b.sortKey; });
 
-      var labels = trendData.map(d => d.grade); // X축 라벨 판단용
-      var scores = trendData.map(d => d.score); // Y축 데이터
+      var labels = trendData.map(d => d.grade); 
+      var scores = trendData.map(d => d.score); 
 
       document.getElementById('graphTitle').innerText = targetSubject + " 등급 추이";
       document.getElementById('graphModal').style.display = 'flex';
