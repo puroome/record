@@ -34,7 +34,7 @@
     h2 { color: #333; margin-bottom: 25px; }
     p { color: #666; font-size: 14px; margin-bottom: 15px; }
 
-    /* 개발자 브랜드 로고 스타일 */
+    /* 개발자 브랜드 로고 스타일 (우측 상단) */
     .developer-brand {
       position: absolute;
       top: 20px;
@@ -51,6 +51,18 @@
       opacity: 1;
       color: #4285F4;
       transition: 0.3s;
+    }
+
+    /* [추가] 업데이트 날짜 표시 (좌측 상단) */
+    .last-updated {
+      position: absolute;
+      top: 20px;
+      left: 25px;
+      font-size: 11px;
+      color: #b0b0b0;        
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      z-index: 10;
+      cursor: default;
     }
     
     /* 입력창 */
@@ -148,6 +160,7 @@
 </head>
 <body>
   <div class="container">
+    <div id="lastUpdatedDisplay" class="last-updated"></div>
     <div class="developer-brand">ⓒ JEONGKAPSU</div>
 
     <h2 id="mainTitle">광남고 성적 조회</h2>
@@ -179,7 +192,7 @@
       <div id="modalMsg" class="modal-msg">내용</div>
       
       <div id="modalOptions" style="display:none; flex-direction:column; gap:5px; margin-top:10px; width:100%;">
-        </div>
+      </div>
 
       <div id="modalBtnGroup" class="modal-btn-group">
         <button id="modalBtnCancel" class="modal-btn cancel" style="display:none;" onclick="closeModal()">취소</button>
@@ -221,9 +234,15 @@
     var fetchedStudentData = null; 
     var myChart = null; 
 
+    // [캐싱] 서버 버전 정보 저장 변수
+    var serverVersion = 0; 
+
     document.addEventListener('contextmenu', function(event) { event.preventDefault(); });
 
     window.addEventListener('load', function() {
+        // [캐싱] 1. 앱 실행 시 서버 버전 확인
+        checkAppVersion();
+        
         history.replaceState({ step: 'step1' }, 'step1', '');
     });
 
@@ -252,7 +271,42 @@
         document.getElementById('mainTitle').style.display = showMainTitle ? 'block' : 'none';
     };
 
-    // ---------------- [수정] 모달 관련 함수들 ----------------
+    // ---------------- [캐싱 로직 추가] ----------------
+    function checkAppVersion() {
+      // Firebase의 info 노드에서 버전 정보 가져오기
+      db.ref('info').once('value').then(function(snapshot) {
+        if (snapshot.exists()) {
+          var info = snapshot.val();
+          var sVer = info.version;       // 타임스탬프 버전
+          var sDate = info.lastUpdated;  // 표시용 날짜
+
+          // 1. 날짜 표시
+          document.getElementById('lastUpdatedDisplay').innerText = "Update: " + sDate;
+          
+          // 2. 버전 비교 및 캐시 정리
+          var localVer = localStorage.getItem('cached_version');
+          
+          if (String(localVer) !== String(sVer)) {
+            // 버전이 다르면 데이터 캐시 삭제 (새 버전 받아야 함)
+            console.log("새로운 데이터가 감지되었습니다. 캐시를 초기화합니다.");
+            localStorage.removeItem('cached_student_data'); 
+            // *주의: 여기서 버전을 바로 업데이트하지 않고, 실제로 데이터를 성공적으로 받았을 때 업데이트함.
+          }
+          
+          serverVersion = sVer; // 전역 변수에 최신 버전 저장
+        }
+      }).catch(function(err) {
+        console.log("버전 확인 실패 (오프라인 등): " + err);
+        // 실패 시 기존 캐시가 있다면 날짜라도 표시 시도
+        var localDate = localStorage.getItem('cached_date_str');
+        if(localDate) {
+           document.getElementById('lastUpdatedDisplay').innerText = "Update: " + localDate + " (Offline)";
+        }
+      });
+    }
+    // ------------------------------------------------
+
+    // ---------------- [모달] ----------------
     function showAlert(title, msg, callback) {
       resetModalState(); 
       document.getElementById('modalTitle').innerText = title;
@@ -275,16 +329,12 @@
 
     function showSelectionModal(name, ids, callback) {
       resetModalState(); 
-      
-      // [수정됨] 이 모달은 너비를 60%로 줄임
       var modalBox = document.getElementById('commonModalBox');
       modalBox.style.width = "60%";
-      modalBox.style.maxWidth = "300px"; // 너무 커지지 않게 제한
+      modalBox.style.maxWidth = "300px"; 
 
       document.getElementById('modalTitle').innerText = "학번 선택";
-      // [수정됨] 줄바꿈 <br> 적용
       document.getElementById('modalMsg').innerHTML = "동명이인이 있습니다.<br>찾는 학생의 학번을 선택하세요.";
-
       document.getElementById('modalBtnGroup').style.display = 'none';
       
       var optContainer = document.getElementById('modalOptions');
@@ -306,11 +356,9 @@
     }
 
     function resetModalState() {
-      // [수정됨] 모달 스타일을 원래대로 복구
       var modalBox = document.getElementById('commonModalBox');
       modalBox.style.width = "90%";
       modalBox.style.maxWidth = "380px";
-
       document.getElementById('modalOptions').style.display = 'none';
       document.getElementById('modalBtnGroup').style.display = 'flex';
       document.getElementById('modalBtnConfirm').onclick = function() { if (onModalConfirm) onModalConfirm(); else closeModal(); };
@@ -399,6 +447,36 @@
         return; 
       }
 
+      // ---------------- [캐싱 로직 적용: 캐시 확인] ----------------
+      var cachedRaw = localStorage.getItem('cached_student_data');
+      if (cachedRaw) {
+        try {
+          var cached = JSON.parse(cachedRaw);
+          // 캐시된 데이터가 현재 입력한 사람의 것인지 확인 (ID와 이름 일치)
+          // *주의: checkAppVersion에서 버전이 다르면 이미 removeItem을 했으므로,
+          // 여기에 데이터가 남아있다는 것은 '최신 버전'임을 의미합니다.
+          if (cached.key === id && cached.name === name) {
+             console.log("캐시된 데이터를 사용합니다.");
+             
+             currentId = id; currentName = name;
+             fetchedStudentData = cached;
+
+             document.getElementById('step1').style.display = 'none';
+             if (cached.pw && String(cached.pw).trim() !== "") {
+               document.getElementById('step2-login').style.display = 'block';
+               document.getElementById('loginPw').focus();
+               history.pushState({ step: 'step2-login' }, 'login', '');
+             } else {
+               document.getElementById('step2-register').style.display = 'block';
+               document.getElementById('regPw1').focus();
+               history.pushState({ step: 'step2-register' }, 'register', '');
+             }
+             return; // 네트워크 요청 생략하고 종료
+          }
+        } catch(e) { console.log("캐시 파싱 오류: " + e); }
+      }
+      // ------------------------------------------------------------
+
       var btn = document.getElementById('btnStep1');
       btn.innerHTML = "확인 중..."; btn.disabled = true;
       
@@ -411,6 +489,21 @@
             return;
           }
           currentId = id; currentName = name;
+          
+          // ---------------- [캐싱 로직 적용: 저장] ----------------
+          // 불러온 데이터에 ID를 포함시켜서 저장 (나중에 본인 확인용)
+          data.key = id; 
+          localStorage.setItem('cached_student_data', JSON.stringify(data));
+          
+          // 데이터를 성공적으로 받았으므로, 로컬 버전을 서버 버전으로 갱신
+          if (serverVersion) {
+             localStorage.setItem('cached_version', serverVersion);
+             // 날짜 텍스트도 저장 (오프라인 대비)
+             var dateTxt = document.getElementById('lastUpdatedDisplay').innerText.replace("Update: ", "");
+             localStorage.setItem('cached_date_str', dateTxt);
+          }
+          // -------------------------------------------------------
+
           fetchedStudentData = data;
           
           document.getElementById('step1').style.display = 'none';
@@ -439,7 +532,12 @@
       var msg = "비밀번호를 <span style='color:#d93025; font-weight:bold; font-size:18px;'>" + pw1 + "</span> (으)로<br>설정하시겠습니까?";
       showConfirm("비밀번호 설정", msg, function() { 
         db.ref('students/' + currentId).update({ pw: pw1 }).then(function() {
-           if(fetchedStudentData) fetchedStudentData.pw = pw1;
+           // [캐싱] 비밀번호 변경 시 메모리 및 캐시 데이터도 갱신해야 함
+           if(fetchedStudentData) {
+              fetchedStudentData.pw = pw1;
+              localStorage.setItem('cached_student_data', JSON.stringify(fetchedStudentData));
+           }
+
            showAlert("설정 완료", "비밀번호가 설정되었습니다.<br>성적을 조회합니다.", function() { loadScoreAndShow(pw1); });
         }).catch(function(err) { showAlert("오류", "시스템 오류가 발생했습니다."); });
       });
@@ -453,9 +551,17 @@
 
     function loadScoreAndShow(pw) {
       if (!fetchedStudentData) {
+         // [캐싱] 여기서는 캐시 확인 안함 (Step1에서 이미 처리됨)
+         // 예외적으로 바로 여기로 온 경우를 대비해 DB 조회
          db.ref('students/' + currentId).once('value').then(function(snap){
             if(snap.exists()) {
                fetchedStudentData = snap.val();
+               fetchedStudentData.key = currentId; // 캐시용 키 추가
+               
+               // 늦게라도 저장
+               localStorage.setItem('cached_student_data', JSON.stringify(fetchedStudentData));
+               if(serverVersion) localStorage.setItem('cached_version', serverVersion);
+
                verifyAndRender(pw);
             } else {
                showAlert("오류", "데이터를 찾을 수 없습니다.");
