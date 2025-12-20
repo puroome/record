@@ -24,7 +24,7 @@
     .container { 
       background: white; 
       max-width: 500px; 
-      /* [수정] 상단 여백을 30px에서 10px로 줄여 화면 낭비 최소화 */
+      /* [수정] 상단 여백 최소화 */
       margin: 10px auto; 
       padding: 30px; 
       border-radius: 12px; 
@@ -35,7 +35,7 @@
     h2 { color: #333; margin-bottom: 25px; }
     p { color: #666; font-size: 14px; margin-bottom: 15px; }
 
-    /* 개발자 브랜드 로고 스타일 */
+    /* 개발자 브랜드 로고 스타일 (기본 화면용) */
     .developer-brand {
       position: absolute;
       top: 20px; right: 25px;
@@ -45,7 +45,7 @@
     }
     .developer-brand:hover { opacity: 1; color: #4285F4; transition: 0.3s; }
 
-    /* 업데이트 날짜 표시 */
+    /* 업데이트 날짜 표시 (기본 화면용) */
     .last-updated {
       position: absolute;
       top: 20px; left: 25px;
@@ -70,25 +70,33 @@
     .step-area { display: none; }
     #step1 { display: block; } 
     
-    /* [수정] 결과 화면 헤더 고정 (Sticky Header) */
-    .result-header { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      border-bottom: 2px solid #4285F4; 
-      padding-bottom: 15px; 
-      margin-bottom: 15px; 
-      margin-top: 20px; /* 제목과 너무 붙지 않게 약간 조정 */
+    /* [수정] Step 3 결과 화면용 통합 고정 헤더 스타일 */
+    .step3-sticky-header {
+      position: sticky; 
+      top: 0; 
+      z-index: 100;
+      background-color: white; 
       
-      /* 고정 관련 속성 추가 */
-      position: sticky;
-      top: 0;
-      background-color: white; /* 뒤의 내용이 비치지 않게 배경색 지정 */
-      z-index: 100; /* 다른 요소보다 위에 오도록 설정 */
-      padding-top: 10px; /* 상단 고정 시 위쪽 여백 확보 */
+      /* 컨테이너의 padding(30px)을 상쇄하여 상단에 딱 붙임 */
+      margin-top: -30px; 
+      margin-left: -30px; 
+      margin-right: -30px;
+      
+      /* 내부 여백 재설정 */
+      padding: 25px 30px 20px 30px; 
+      
+      border-radius: 12px 12px 0 0; /* 컨테이너 둥근 모서리와 일치 */
+      border-bottom: 2px solid #4285F4; /* 파란색 밑줄 */
+      margin-bottom: 20px;
     }
 
-    .header-text-group { font-size: 20px; font-weight: bold; color: #333; }
+    /* Step 3 헤더 내부 요소 위치 잡기 */
+    .step3-header-top {
+      display: flex; justify-content: space-between; margin-bottom: 20px;
+    }
+    .step3-date { font-size: 11px; color: #b0b0b0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .step3-brand { font-size: 11px; color: #b0b0b0; text-transform: uppercase; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .step3-title { font-size: 20px; font-weight: bold; color: #333; text-align: left; }
     
     /* 아코디언 스타일 */
     .accordion-btn {
@@ -279,6 +287,10 @@
         document.querySelectorAll('.step-area').forEach(el => el.style.display = 'none');
         document.getElementById('step3-result').style.display = 'none';
         
+        // [수정] 메인 화면으로 돌아오면 원래 날짜/로고 다시 표시
+        document.getElementById('lastUpdatedDisplay').style.display = 'block';
+        document.querySelector('.developer-brand').style.display = 'block';
+
         var showMainTitle = true;
         if (event.state && event.state.step) {
             var target = event.state.step;
@@ -286,6 +298,10 @@
                 document.getElementById('step3-result').style.display = 'block';
                 document.querySelector('.container').style.maxWidth = 'none'; 
                 showMainTitle = false;
+                
+                // 결과 화면으로 직접 popstate 된 경우 다시 숨김 처리
+                document.getElementById('lastUpdatedDisplay').style.display = 'none';
+                document.querySelector('.developer-brand').style.display = 'none';
             } else if (target === 'step2-login' || target === 'step2-register') {
                 document.getElementById(target).style.display = 'block';
                 document.querySelector('.container').style.maxWidth = '500px';
@@ -347,6 +363,7 @@
     function showSelectionList(matches, isAdmin) {
       resetModalState();
       var modalBox = document.getElementById('commonModalBox');
+      // [수정] 너비 자동 조절 (내용에 맞게)
       modalBox.style.width = "auto";
       
       document.getElementById('modalTitle').innerText = "이름 선택";
@@ -558,17 +575,36 @@
          document.querySelector('.container').style.maxWidth = '500px';
          document.querySelectorAll('.step-area').forEach(el => el.style.display = 'none');
          document.getElementById('mainTitle').style.display = 'none';
+         
+         // [수정] 결과 화면에서는 원래 있던 날짜와 로고를 숨깁니다 (새로 만든 헤더에 넣을 것이므로)
+         document.getElementById('lastUpdatedDisplay').style.display = 'none';
+         document.querySelector('.developer-brand').style.display = 'none';
+
          document.getElementById('step3-result').style.display = 'block';
          
          history.pushState({ step: 'step3' }, 'result', '');
          globalScoreData = fetchedStudentData.scores || [];
          
-         var html = '<div class="result-header">';
+         // 현재 표시된 업데이트 날짜 텍스트 가져오기
+         var dateText = document.getElementById('lastUpdatedDisplay').innerText;
+
+         // [수정] 헤더 전체를 감싸는 sticky-header 생성
+         var html = '<div class="step3-sticky-header">';
          
-         // [수정] 이름 옆에 학번 추가 (녹색)
-         html += '<div class="header-text-group"><span style="color:#4285F4">' + currentName + '</span> <span style="color:#34a853; font-size: 0.9em;">(' + currentId + ')</span> 학생의 성적표</div>';
+         // 1. 날짜와 브랜드 로고 (상단 배치)
+         html += '  <div class="step3-header-top">';
+         html += '    <span class="step3-date">' + dateText + '</span>';
+         html += '    <span class="step3-brand">ⓒ JEONGKAPSU</span>';
+         html += '  </div>';
          
-         html += '</div>';
+         // 2. 학생 이름과 학번 (그 아래 배치)
+         html += '  <div class="step3-title">';
+         html += '    <span style="color:#4285F4">' + currentName + '</span> ';
+         html += '    <span style="color:#34a853; font-size: 0.9em;">(' + currentId + ')</span> 학생의 성적표';
+         html += '  </div>';
+         
+         html += '</div>'; // sticky-header 닫기
+
          html += '<div id="accordionArea"></div>';
          html += '<button class="btn btn-secondary" onclick="resetAll()">로그아웃</button>';
          
