@@ -96,7 +96,7 @@
 
     /* 뱃지 스타일 (등급 표시용) */
     .grade-badge {
-      background-color: #e8f0fe; 
+      background-color: #e8f0fe; /* 기본: 연한 파랑 */
       color: #1967d2;            
       padding: 2px 8px;
       border-radius: 12px;       
@@ -105,8 +105,10 @@
       margin-left: 8px;
       vertical-align: middle;
       display: inline-block;
-      transition: 0.3s; 
+      transition: 0.3s; /* 색상 변경 시 부드럽게 */
     }
+
+    /* [추가] 버튼이 활성화(펼침)되었을 때 뱃지 배경을 흰색으로 변경 */
     .accordion-btn.active .grade-badge {
       background-color: #ffffff;
     }
@@ -142,32 +144,9 @@
     .item-row td:nth-child(2) { text-align: center; font-weight: bold; color: #333; }
     .item-row:last-child td { border-bottom: none; }
 
-    /* [수정] 클릭 가능한 과목 스타일 (그래프용) - 밑줄 제거 및 아이콘 정렬 */
-    .clickable-subject { 
-      color: #1a73e8; 
-      cursor: pointer; 
-      font-weight: 600; 
-      display: inline-flex; 
-      align-items: center; 
-      gap: 5px; 
-      text-decoration: none; /* 밑줄 제거 */
-      padding: 2px 6px;      /* 터치 영역 확보 */
-      margin-left: -6px;     /* 패딩만큼 위치 보정 */
-      border-radius: 4px;
-      transition: background-color 0.2s;
-    }
-    .clickable-subject:hover { 
-      color: #0d47a1; 
-      background-color: rgba(26, 115, 232, 0.08); /* 마우스 올리면 살짝 배경색 */
-    }
-    
-    /* 그래프 아이콘 SVG 스타일 */
-    .graph-icon-svg {
-        width: 14px;
-        height: 14px;
-        fill: currentColor;
-        opacity: 0.7;
-    }
+    /* 클릭 가능한 과목 (그래프용) */
+    .clickable-subject { color: #1a73e8; text-decoration: underline; cursor: pointer; }
+    .clickable-subject:hover { color: #0d47a1; }
     
     /* 모달 */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
@@ -623,6 +602,7 @@
        }
     }
 
+    // [수정] 뱃지 스타일 적용 (renderAccordionTree)
     function renderAccordionTree(data, container) {
       if (!data || data.length === 0) {
         container.innerHTML = '<p style="padding:20px; text-align:center;">등록된 성적 데이터가 없습니다.</p>';
@@ -920,13 +900,10 @@
             var isTarget = ['국어','수학','영어'].includes(normalized);
             var clickAttr = "";
             var nameClass = "";
-            
-            // [수정] 아이콘 표시 로직 추가
+
             if (isMockExam && isTarget) {
                clickAttr = 'onclick="showTrendGraph(\'' + itemName + '\')"';
                nameClass = 'class="clickable-subject"';
-               // 과목명 옆에 그래프 SVG 아이콘 추가
-               itemName += ' <svg class="graph-icon-svg" viewBox="0 0 24 24"><path d="M7 19h-2v-2h2v2zm4 0h-2v-6h2v6zm4 0h-2v-10h2v10zm4 0h-2v-14h2v14zm2 2H5V5h2v14h14v2z"/></svg>';
             }
 
             if (itemName.indexOf("객관식") > -1 || itemName.indexOf("주관식") > -1) {
