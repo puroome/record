@@ -94,17 +94,23 @@
     .accordion-btn:hover { background-color: #f9f9f9; }
     .accordion-btn.active { background-color: #e8f0fe; color: #1967d2; border-bottom: none; }
 
-    /* [추가] 뱃지 스타일 (등급 표시용) */
+    /* 뱃지 스타일 (등급 표시용) */
     .grade-badge {
-      background-color: #e8f0fe; /* 연한 파란색 배경 */
-      color: #1967d2;            /* 진한 파란색 글씨 */
+      background-color: #e8f0fe; /* 기본: 연한 파랑 */
+      color: #1967d2;            
       padding: 2px 8px;
-      border-radius: 12px;       /* 둥근 모서리 */
+      border-radius: 12px;       
       font-size: 13px;
       font-weight: bold;
       margin-left: 8px;
       vertical-align: middle;
       display: inline-block;
+      transition: 0.3s; /* 색상 변경 시 부드럽게 */
+    }
+
+    /* [추가] 버튼이 활성화(펼침)되었을 때 뱃지 배경을 흰색으로 변경 */
+    .accordion-btn.active .grade-badge {
+      background-color: #ffffff;
     }
     
     /* 계층별 스타일 */
@@ -642,7 +648,7 @@
                    }
                  }
 
-                 // [수정] 뱃지 스타일 적용
+                 // 뱃지 스타일 적용
                  var btnLabel = subjectNode.name;
                  if (gradeText) {
                     btnLabel += '<span class="grade-badge">' + gradeText + '등급</span>';
