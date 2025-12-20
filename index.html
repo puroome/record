@@ -107,7 +107,6 @@
       display: inline-block;
       transition: 0.3s;
     }
-    /* 버튼이 활성화(펼침)되었을 때 뱃지 배경을 흰색으로 변경 */
     .accordion-btn.active .grade-badge {
       background-color: #ffffff;
     }
@@ -143,29 +142,38 @@
     .item-row td:nth-child(2) { text-align: center; font-weight: bold; color: #333; }
     .item-row:last-child td { border-bottom: none; }
 
-    /* [수정] 클릭 가능한 과목 (그래프용) - 밑줄 제거 및 아이콘 정렬 */
-    .clickable-subject { 
-      color: #333; 
-      text-decoration: none !important; /* 밑줄 강제 제거 */
-      cursor: pointer; 
-      display: inline-flex; /* 텍스트와 아이콘 가로 정렬 */
-      align-items: center;  /* 수직 중앙 정렬 */
+    /* [수정] 클릭 가능한 영역 스타일 */
+    .clickable-cell {
+      cursor: pointer;
+      position: relative; /* 아이콘 위치 잡기 용이하게 */
+    }
+    .clickable-cell:hover {
+      background-color: #f8faff; /* 마우스 올리면 살짝 배경색 */
+    }
+    .clickable-text {
+      color: #333;
+      font-weight: normal; /* 굵기 초기화 */
+      text-decoration: none; /* 밑줄 제거 */
+      vertical-align: middle;
       transition: 0.2s;
     }
-    .clickable-subject:hover { 
-      color: #1a73e8; /* 호버 시 텍스트 색상 변경 */
+    .clickable-cell:hover .clickable-text {
+      color: #1a73e8; /* 호버시 글자색 변경 */
+      font-weight: bold; 
     }
 
-    /* [추가] 그래프 아이콘 스타일 */
-    .graph-icon {
-      width: 16px;
-      height: 16px;
+    /* [추가] 깔끔한 꺾은선 그래프 아이콘 스타일 */
+    .trend-icon-svg {
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
       margin-left: 6px;
-      stroke: #999; /* 기본 회색 */
+      fill: #bbb; /* 기본은 은은한 회색 */
       transition: 0.2s;
     }
-    .clickable-subject:hover .graph-icon {
-      stroke: #1a73e8; /* 호버 시 아이콘 파란색 */
+    /* 호버시 아이콘 색상 진하게 */
+    .clickable-cell:hover .trend-icon-svg {
+      fill: #4285F4; 
       transform: scale(1.1); /* 살짝 커짐 */
     }
     
@@ -863,7 +871,7 @@
       document.getElementById('graphModal').style.display = 'none';
     }
 
-    // [수정] 과목명 옆에 그래프 아이콘 추가 로직
+    // [수정] 과목명 옆에 깔끔한 아이콘 추가 로직 (레이아웃 보존)
     function getTableHTML(categoryList) {
       var isMockExam = categoryList.some(function(c) { return c.category === "등급"; });
       var html = '<table>';
@@ -918,16 +926,17 @@
             var normalized = normalizeSubjectName(itemName);
             var isTarget = ['국어','수학','영어'].includes(normalized);
             var clickAttr = "";
-            var nameClass = "";
+            var cellClass = "";
             
-            // [수정] 아이콘 HTML 준비
+            // [수정] 깔끔한 꺾은선 그래프 아이콘 (SVG) - 버튼처럼 보이는 구분된 아이콘
             var iconHtml = "";
 
             if (isMockExam && isTarget) {
                clickAttr = 'onclick="showTrendGraph(\'' + itemName + '\')"';
-               nameClass = 'class="clickable-subject"';
-               // 그래프 아이콘 (SVG)
-               iconHtml = '<svg class="graph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>';
+               cellClass = 'class="clickable-cell"'; // 밑줄 제거, 포인터 적용
+               
+               // 고해상도 SVG 아이콘 (깔끔한 차트 모양)
+               iconHtml = '<svg class="trend-icon-svg" viewBox="0 0 24 24"><path d="M3 17h2v-6h2v6h2v-9h2v9h2v-12h2v12h4v-16h-20v16zm-2 2h22v2h-22v-2z"/></svg>';
             }
 
             if (itemName.indexOf("객관식") > -1 || itemName.indexOf("주관식") > -1) {
@@ -935,8 +944,8 @@
             }
 
             html += '<tr class="item-row">';
-            // [수정] 아이콘을 과목명 뒤에 추가
-            html += '  <td ' + nameClass + ' ' + clickAttr + '>' + itemName + iconHtml + '</td>';
+            // [수정] 아이콘과 텍스트를 같은 TD 안에 배치하여 레이아웃 유지
+            html += '  <td ' + cellClass + ' ' + clickAttr + '><span class="clickable-text">' + itemName + '</span>' + iconHtml + '</td>';
             html += '  <td ' + scoreStyle + '>' + itemScore + '</td>';
             html += '</tr>';
           }
