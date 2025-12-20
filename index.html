@@ -123,16 +123,7 @@
     .item-row td:nth-child(2) { text-align: center; font-weight: bold; color: #333; }
     .item-row:last-child td { border-bottom: none; }
 
-    /* 클릭 가능한 영역 스타일 */
-    .clickable-cell { cursor: pointer; position: relative; }
-    .clickable-cell:hover { background-color: #f8faff; }
-    .clickable-text {
-      color: #333; font-weight: normal; text-decoration: none;
-      vertical-align: middle; transition: 0.2s;
-    }
-    .clickable-cell:hover .clickable-text { color: #1a73e8; font-weight: bold; }
-
-    /* [최종 수정] 빨간색 그래프 아이콘 뱃지 스타일 */
+    /* [수정] 빨간색 그래프 아이콘 뱃지 스타일 (독립형) */
     .trend-badge {
       display: inline-flex; align-items: center; justify-content: center;
       width: 22px; height: 22px;
@@ -142,18 +133,22 @@
       vertical-align: middle;
       transition: 0.2s;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      cursor: pointer; /* 클릭 가능 표시 */
     }
-    .clickable-cell:hover .trend-badge {
+    
+    /* [수정] 아이콘에 직접 호버 효과 적용 */
+    .trend-badge:hover {
       transform: scale(1.1);
       background-color: #ff7875;
     }
 
-    /* [최종 수정] 내부 흰색 그래프 아이콘 (SVG) */
+    /* [수정] 내부 흰색 그래프 아이콘 (SVG) */
     .trend-svg {
       width: 14px; height: 14px;
       stroke: white; stroke-width: 2;
       fill: none;
       stroke-linecap: round; stroke-linejoin: round;
+      pointer-events: none; /* 아이콘 내부 요소가 클릭 이벤트를 방해하지 않도록 */
     }
     
     /* 모달 */
@@ -775,7 +770,7 @@
 
     function closeGraphModal() { document.getElementById('graphModal').style.display = 'none'; }
 
-    // [최종 수정] 빨간색 뱃지 아이콘 적용
+    // [최종 수정] 클릭 영역을 아이콘으로 한정함
     function getTableHTML(categoryList) {
       var isMockExam = categoryList.some(function(c) { return c.category === "등급"; });
       var html = '<table>';
@@ -814,16 +809,11 @@
             
             var normalized = normalizeSubjectName(itemName);
             var isTarget = ['국어','수학','영어'].includes(normalized);
-            var clickAttr = "";
-            var cellClass = "";
             var iconHtml = "";
 
             if (isMockExam && isTarget) {
-               clickAttr = 'onclick="showTrendGraph(\'' + itemName + '\')"';
-               cellClass = 'class="clickable-cell"'; 
-               
-               // [최종 수정] 빨간 뱃지 + 흰색 SVG (X,Y축 & 상승그래프)
-               iconHtml = '<span class="trend-badge">' +
+               // [수정] onclick 이벤트를 td가 아닌 badge로 이동
+               iconHtml = '<span class="trend-badge" onclick="showTrendGraph(\'' + itemName + '\')">' +
                           '<svg class="trend-svg" viewBox="0 0 24 24">' +
                             // X, Y축 (L자)
                             '<path d="M4 4 L4 20 L20 20" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
@@ -835,8 +825,10 @@
             if (itemName.indexOf("객관식") > -1 || itemName.indexOf("주관식") > -1) {
                scoreStyle = 'style="font-weight: normal; color: #555;"'; 
             }
+            
+            // [수정] td의 clickable-cell 클래스 제거, onclick 제거
             html += '<tr class="item-row">';
-            html += '  <td ' + cellClass + ' ' + clickAttr + '><span class="clickable-text">' + itemName + '</span>' + iconHtml + '</td>';
+            html += '  <td><span>' + itemName + '</span>' + iconHtml + '</td>';
             html += '  <td ' + scoreStyle + '>' + itemScore + '</td>';
             html += '</tr>';
           }
