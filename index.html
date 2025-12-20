@@ -24,7 +24,7 @@
     .container { 
       background: white; 
       max-width: 500px; 
-      /* 기본 화면 상단 여백 */
+      /* [수정] 상단 여백 최소화 */
       margin: 10px auto; 
       padding: 30px; 
       border-radius: 12px; 
@@ -70,25 +70,19 @@
     .step-area { display: none; }
     #step1 { display: block; } 
     
-    /* [최종 수정] Step 3 결과 화면용 통합 고정 헤더 스타일 */
+    /* [수정] Step 3 결과 화면용 통합 고정 헤더 스타일 */
     .step3-sticky-header {
       position: sticky; 
-      
-      /* 1. 화면 맨 위에서 10px(빨간 화살표 간격) 만큼 띄워서 고정 */
-      top: 10px; 
-      
-      /* 2. 위쪽으로 배경색과 같은 '가림막' 그림자를 생성하여 스크롤되는 글자를 가림 */
-      box-shadow: 0 -20px 0 0 #f4f6f8; 
-
+      top: 0; 
       z-index: 100;
       background-color: white; 
       
-      /* 컨테이너의 padding을 상쇄하여 상단에 딱 붙임 */
+      /* 컨테이너의 padding(30px)을 상쇄하여 상단에 딱 붙임 */
       margin-top: -30px; 
       margin-left: -30px; 
       margin-right: -30px;
       
-      /* [빨간 화살표] 카드 내부의 위쪽 여백 */
+      /* 내부 여백 재설정 */
       padding: 15px 30px 20px 30px; 
       
       border-radius: 12px 12px 0 0; /* 컨테이너 둥근 모서리와 일치 */
@@ -98,9 +92,7 @@
 
     /* Step 3 헤더 내부 요소 위치 잡기 */
     .step3-header-top {
-      display: flex; justify-content: space-between; 
-      /* [파란 화살표] 날짜와 제목 사이 간격을 5px로 줄임 */
-      margin-bottom: 5px; 
+      display: flex; justify-content: space-between; margin-bottom: 10px;
     }
     .step3-date { font-size: 11px; color: #b0b0b0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     .step3-brand { font-size: 11px; color: #b0b0b0; text-transform: uppercase; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -295,7 +287,7 @@
         document.querySelectorAll('.step-area').forEach(el => el.style.display = 'none');
         document.getElementById('step3-result').style.display = 'none';
         
-        // 메인 화면으로 돌아오면 원래 날짜/로고 다시 표시
+        // [수정] 메인 화면으로 돌아오면 원래 날짜/로고 다시 표시
         document.getElementById('lastUpdatedDisplay').style.display = 'block';
         document.querySelector('.developer-brand').style.display = 'block';
 
@@ -371,7 +363,7 @@
     function showSelectionList(matches, isAdmin) {
       resetModalState();
       var modalBox = document.getElementById('commonModalBox');
-      // [수정] 모달 너비 자동 조절 (내용에 맞게)
+      // [수정] 너비 자동 조절 (내용에 맞게)
       modalBox.style.width = "auto";
       
       document.getElementById('modalTitle').innerText = "이름 선택";
@@ -584,7 +576,7 @@
          document.querySelectorAll('.step-area').forEach(el => el.style.display = 'none');
          document.getElementById('mainTitle').style.display = 'none';
          
-         // 결과 화면에서는 원래 있던 날짜와 로고를 숨김
+         // [수정] 결과 화면에서는 원래 있던 날짜와 로고를 숨깁니다 (새로 만든 헤더에 넣을 것이므로)
          document.getElementById('lastUpdatedDisplay').style.display = 'none';
          document.querySelector('.developer-brand').style.display = 'none';
 
@@ -596,19 +588,19 @@
          // 현재 표시된 업데이트 날짜 텍스트 가져오기
          var dateText = document.getElementById('lastUpdatedDisplay').innerText;
 
-         // 헤더 전체를 감싸는 sticky-header 생성
+         // [수정] 헤더 전체를 감싸는 sticky-header 생성
          var html = '<div class="step3-sticky-header">';
          
-         // 1. 날짜와 브랜드 로고
+         // 1. 날짜와 브랜드 로고 (상단 배치)
          html += '  <div class="step3-header-top">';
          html += '    <span class="step3-date">' + dateText + '</span>';
          html += '    <span class="step3-brand">ⓒ JEONGKAPSU</span>';
          html += '  </div>';
          
-         // 2. 학생 이름과 학번 (margin-left로 간격 조정)
+         // 2. 학생 이름과 학번 (그 아래 배치)
          html += '  <div class="step3-title">';
-         html += '    <span style="color:#4285F4">' + currentName + '</span>';
-         html += '    <span style="color:#34a853; font-size: 0.9em; margin-left: 10px;">(' + currentId + ')</span> 학생의 성적표';
+         html += '    <span style="color:#4285F4">' + currentName + '</span> ';
+         html += '    <span style="color:#34a853; font-size: 0.9em;">(' + currentId + ')</span> 학생의 성적표';
          html += '  </div>';
          
          html += '</div>'; // sticky-header 닫기
