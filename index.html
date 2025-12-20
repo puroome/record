@@ -832,7 +832,13 @@
                   return Math.floor(val); 
                 } 
               },
-              grid: { color: '#f0f0f0' }
+              grid: {
+  color: function(context) {
+    // 맨 위(0.5) 지점의 선만 투명하게(transparent) 처리
+    if (context.tick.value === 0.5) return 'transparent';
+    return '#f0f0f0'; 
+  }
+}
             },
             x: {
               offset: true, 
@@ -935,7 +941,13 @@
               min: 0.5, max: 9, reverse: true,
               // [수정] 모의고사도 9 제거
               ticks: { stepSize: 1, padding: 10, callback: function(val) { if (val < 1 || val === 9) return ""; return Math.floor(val); } },
-              grid: { color: '#f0f0f0' }
+              grid: {
+  color: function(context) {
+    // 맨 위(0.5) 지점의 선만 투명하게(transparent) 처리
+    if (context.tick.value === 0.5) return 'transparent';
+    return '#f0f0f0'; 
+  }
+}
             },
             x: {
               offset: true, grid: { display: false },
