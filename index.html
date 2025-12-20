@@ -59,6 +59,7 @@
       user-select: text; -webkit-user-select: text;
     }
     input:focus { border-color: #4285F4; outline: none; }
+    #inputSearch::placeholder { color: #cccccc; opacity: 1; } /* 옅은 회색 설정 */
     
     .btn { width: 100%; padding: 14px; background-color: #4285F4; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
     .btn:hover { background-color: #3367d6; }
@@ -182,8 +183,8 @@
     <h2 id="mainTitle">광남고 성적 조회</h2>
     
     <div id="step1" class="step-area">
-      <p>학번 또는 이름을 입력해주세요.<br>이름에 와일드카드(?) 사용가능합니다. (예: ?길동)</p>
-      <input type="text" id="inputSearch" placeholder="학번(예: 1129) or 이름" onkeydown="if(event.key === 'Enter') processSearch()">
+      <p>학번 또는 이름을 입력해주세요.</p>
+      <input type="text" id="inputSearch" placeholder="학번 or 이름" onkeydown="if(event.key === 'Enter') processSearch()">
       <button id="btnStep1" onclick="processSearch()" class="btn">조회하기</button>
     </div>
 
