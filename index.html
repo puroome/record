@@ -53,7 +53,7 @@
       transition: 0.3s;
     }
 
-    /* [추가] 업데이트 날짜 표시 (좌측 상단) */
+    /* 업데이트 날짜 표시 (좌측 상단) */
     .last-updated {
       position: absolute;
       top: 10px;
@@ -93,6 +93,19 @@
     }
     .accordion-btn:hover { background-color: #f9f9f9; }
     .accordion-btn.active { background-color: #e8f0fe; color: #1967d2; border-bottom: none; }
+
+    /* [추가] 뱃지 스타일 (등급 표시용) */
+    .grade-badge {
+      background-color: #e8f0fe; /* 연한 파란색 배경 */
+      color: #1967d2;            /* 진한 파란색 글씨 */
+      padding: 2px 8px;
+      border-radius: 12px;       /* 둥근 모서리 */
+      font-size: 13px;
+      font-weight: bold;
+      margin-left: 8px;
+      vertical-align: middle;
+      display: inline-block;
+    }
     
     /* 계층별 스타일 */
     .level-1 { font-size: 18px; border-left: 6px solid #4285F4; background-color: #fff; } 
@@ -240,9 +253,7 @@
     document.addEventListener('contextmenu', function(event) { event.preventDefault(); });
 
     window.addEventListener('load', function() {
-        // [캐싱] 1. 앱 실행 시 서버 버전 확인
         checkAppVersion();
-        
         history.replaceState({ step: 'step1' }, 'step1', '');
     });
 
@@ -271,40 +282,33 @@
         document.getElementById('mainTitle').style.display = showMainTitle ? 'block' : 'none';
     };
 
-    // ---------------- [캐싱 로직 추가] ----------------
+    // ---------------- [캐싱 로직] ----------------
     function checkAppVersion() {
-      // Firebase의 info 노드에서 버전 정보 가져오기
       db.ref('info').once('value').then(function(snapshot) {
         if (snapshot.exists()) {
           var info = snapshot.val();
-          var sVer = info.version;       // 타임스탬프 버전
-          var sDate = info.lastUpdated;  // 표시용 날짜
+          var sVer = info.version;       
+          var sDate = info.lastUpdated;  
 
-          // 1. 날짜 표시
           document.getElementById('lastUpdatedDisplay').innerText = "Update: " + sDate;
           
-          // 2. 버전 비교 및 캐시 정리
           var localVer = localStorage.getItem('cached_version');
           
           if (String(localVer) !== String(sVer)) {
-            // 버전이 다르면 데이터 캐시 삭제 (새 버전 받아야 함)
             console.log("새로운 데이터가 감지되었습니다. 캐시를 초기화합니다.");
             localStorage.removeItem('cached_student_data'); 
-            // *주의: 여기서 버전을 바로 업데이트하지 않고, 실제로 데이터를 성공적으로 받았을 때 업데이트함.
           }
           
-          serverVersion = sVer; // 전역 변수에 최신 버전 저장
+          serverVersion = sVer; 
         }
       }).catch(function(err) {
         console.log("버전 확인 실패 (오프라인 등): " + err);
-        // 실패 시 기존 캐시가 있다면 날짜라도 표시 시도
         var localDate = localStorage.getItem('cached_date_str');
         if(localDate) {
            document.getElementById('lastUpdatedDisplay').innerText = "Update: " + localDate + " (Offline)";
         }
       });
     }
-    // ------------------------------------------------
 
     // ---------------- [모달] ----------------
     function showAlert(title, msg, callback) {
@@ -447,14 +451,10 @@
         return; 
       }
 
-      // ---------------- [캐싱 로직 적용: 캐시 확인] ----------------
       var cachedRaw = localStorage.getItem('cached_student_data');
       if (cachedRaw) {
         try {
           var cached = JSON.parse(cachedRaw);
-          // 캐시된 데이터가 현재 입력한 사람의 것인지 확인 (ID와 이름 일치)
-          // *주의: checkAppVersion에서 버전이 다르면 이미 removeItem을 했으므로,
-          // 여기에 데이터가 남아있다는 것은 '최신 버전'임을 의미합니다.
           if (cached.key === id && cached.name === name) {
              console.log("캐시된 데이터를 사용합니다.");
              
@@ -471,11 +471,10 @@
                document.getElementById('regPw1').focus();
                history.pushState({ step: 'step2-register' }, 'register', '');
              }
-             return; // 네트워크 요청 생략하고 종료
+             return; 
           }
         } catch(e) { console.log("캐시 파싱 오류: " + e); }
       }
-      // ------------------------------------------------------------
 
       var btn = document.getElementById('btnStep1');
       btn.innerHTML = "확인 중..."; btn.disabled = true;
@@ -490,19 +489,14 @@
           }
           currentId = id; currentName = name;
           
-          // ---------------- [캐싱 로직 적용: 저장] ----------------
-          // 불러온 데이터에 ID를 포함시켜서 저장 (나중에 본인 확인용)
           data.key = id; 
           localStorage.setItem('cached_student_data', JSON.stringify(data));
           
-          // 데이터를 성공적으로 받았으므로, 로컬 버전을 서버 버전으로 갱신
           if (serverVersion) {
              localStorage.setItem('cached_version', serverVersion);
-             // 날짜 텍스트도 저장 (오프라인 대비)
              var dateTxt = document.getElementById('lastUpdatedDisplay').innerText.replace("Update: ", "");
              localStorage.setItem('cached_date_str', dateTxt);
           }
-          // -------------------------------------------------------
 
           fetchedStudentData = data;
           
@@ -532,7 +526,6 @@
       var msg = "비밀번호를 <span style='color:#d93025; font-weight:bold; font-size:18px;'>" + pw1 + "</span> (으)로<br>설정하시겠습니까?";
       showConfirm("비밀번호 설정", msg, function() { 
         db.ref('students/' + currentId).update({ pw: pw1 }).then(function() {
-           // [캐싱] 비밀번호 변경 시 메모리 및 캐시 데이터도 갱신해야 함
            if(fetchedStudentData) {
               fetchedStudentData.pw = pw1;
               localStorage.setItem('cached_student_data', JSON.stringify(fetchedStudentData));
@@ -551,14 +544,11 @@
 
     function loadScoreAndShow(pw) {
       if (!fetchedStudentData) {
-         // [캐싱] 여기서는 캐시 확인 안함 (Step1에서 이미 처리됨)
-         // 예외적으로 바로 여기로 온 경우를 대비해 DB 조회
          db.ref('students/' + currentId).once('value').then(function(snap){
             if(snap.exists()) {
                fetchedStudentData = snap.val();
-               fetchedStudentData.key = currentId; // 캐시용 키 추가
+               fetchedStudentData.key = currentId; 
                
-               // 늦게라도 저장
                localStorage.setItem('cached_student_data', JSON.stringify(fetchedStudentData));
                if(serverVersion) localStorage.setItem('cached_version', serverVersion);
 
@@ -606,14 +596,13 @@
        }
     }
 
-    // [수정된 함수: 등급 표시 로직 추가]
+    // [수정] 뱃지 스타일 적용 (renderAccordionTree)
     function renderAccordionTree(data, container) {
       if (!data || data.length === 0) {
         container.innerHTML = '<p style="padding:20px; text-align:center;">등록된 성적 데이터가 없습니다.</p>';
         return;
       }
 
-      // 1단: 학년
       data.forEach(function(gradeNode) {
         var gradeBtn = createAccordionBtn(gradeNode.name, 'level-1');
         var gradePanel = document.createElement('div');
@@ -622,13 +611,11 @@
         container.appendChild(gradeBtn);
         container.appendChild(gradePanel);
 
-        // 1단계 기본 펼침
         gradeBtn.classList.add('active');
         gradePanel.style.maxHeight = "none"; 
 
         gradeBtn.onclick = function() { togglePanel(this, gradePanel); };
 
-        // 2단: 학기
         if(gradeNode.semesters) {
           gradeNode.semesters.forEach(function(semesterNode) {
             var semesterBtn = createAccordionBtn(semesterNode.name, 'level-2');
@@ -638,17 +625,14 @@
             gradePanel.appendChild(semesterBtn);
             gradePanel.appendChild(semesterPanel);
 
-            // 2단계 기본 닫힘
             semesterBtn.onclick = function() { togglePanel(this, semesterPanel); };
 
-            // 3단: 과목
             if(semesterNode.subjects) {
               semesterNode.subjects.forEach(function(subjectNode) {
                  
-                 // [수정] 등급 정보 미리 찾기
+                 // 등급 정보 찾기
                  var gradeText = "";
                  if (subjectNode.items) {
-                   // '종합' 카테고리 안에 '등급' 아이템이 있는지 탐색
                    var totalCat = subjectNode.items.find(function(c) { return c.category === "종합"; });
                    if (totalCat) {
                      var gradeItem = totalCat.items.find(function(i) { return i.item === "등급"; });
@@ -658,11 +642,10 @@
                    }
                  }
 
-                 // [수정] 버튼 제목 생성 (과목명 + 빨간색 등급)
+                 // [수정] 뱃지 스타일 적용
                  var btnLabel = subjectNode.name;
                  if (gradeText) {
-                    // 한 칸 띄우고 빨간색으로 "X등급" 표시
-                    btnLabel += ' <span style="color:red; font-size:0.9em;">' + gradeText + '등급</span>';
+                    btnLabel += '<span class="grade-badge">' + gradeText + '등급</span>';
                  }
 
                  var subjectBtn = createAccordionBtn(btnLabel, 'level-3');
@@ -676,7 +659,6 @@
 
                  var tableContainer = document.createElement('div');
                  tableContainer.className = 'panel-content';
-                 // getTableHTML에 데이터를 넘겨서 표 생성
                  tableContainer.innerHTML = getTableHTML(subjectNode.items);
                  subjectPanel.appendChild(tableContainer);
               });
@@ -773,7 +755,6 @@
         return;
       }
 
-      // 시간순 정렬
       trendData.sort(function(a, b) { return a.sortKey - b.sortKey; });
 
       var labels = trendData.map(d => d.grade); 
@@ -858,7 +839,6 @@
       document.getElementById('graphModal').style.display = 'none';
     }
 
-    // [수정된 함수: 종합-등급 항목 숨김 처리]
     function getTableHTML(categoryList) {
       var isMockExam = categoryList.some(function(c) { return c.category === "등급"; });
       var html = '<table>';
@@ -879,7 +859,7 @@
           for (var i = 0; i < items.length; i++) {
             var itemName = items[i].item;
             
-            // [수정] "종합" 카테고리의 "등급" 항목은 표에서 숨김
+            // 종합 등급은 테이블에서 숨김 (뱃지로 표시함)
             if (category === "종합" && itemName === "등급") {
                 continue; 
             }
@@ -888,7 +868,6 @@
             else { displayItems.push(items[i]); }
           }
 
-          // [수정] 항목을 숨겨서 표시할 내용이 아예 없어진 경우 카테고리 행 생략
           if (displayItems.length === 0 && categoryScore === "") {
              continue;
           }
