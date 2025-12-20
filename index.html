@@ -111,8 +111,8 @@
 
     /* 뱃지 스타일 */
     .grade-badge {
-      background-color: #e8f0fe; color: #1967d2;            
-      padding: 2px 8px; border-radius: 12px;       
+      background-color: #e8f0fe; color: #1967d2;             
+      padding: 2px 8px; border-radius: 12px;        
       font-size: 13px; font-weight: bold;
       vertical-align: middle;
       display: inline-block; transition: 0.3s;
@@ -154,7 +154,7 @@
       display: inline-flex; align-items: center; justify-content: center;
       width: 22px; height: 22px;
       background-color: rgba(255, 77, 79, 0.5); 
-      border-radius: 6px;        
+      border-radius: 6px;         
       margin-left: 8px;
       vertical-align: middle;
       transition: 0.2s;
@@ -321,7 +321,7 @@
       db.ref('info').once('value').then(function(snapshot) {
         if (snapshot.exists()) {
           var info = snapshot.val();
-          var sVer = info.version;       
+          var sVer = info.version;        
           var sDate = info.lastUpdated;  
           document.getElementById('lastUpdatedDisplay').innerText = "Update: " + sDate;
           
@@ -366,7 +366,7 @@
       // [수정] 너비 자동 조절 (내용에 맞게)
       modalBox.style.width = "auto";
       
-      document.getElementById('modalTitle').innerText = "이름 선택";
+      document.getElementById('modalTitle').innerText = "학생 선택";
       document.getElementById('modalMsg').innerHTML = "찾는 학생을 선택하세요.";
       document.getElementById('modalBtnGroup').style.display = 'none';
       
@@ -400,7 +400,7 @@
     function closeModal() { document.getElementById('customModal').style.display = 'none'; }
     // ---------------------------------------------------------
 
-    // [신규] 통합 검색 로직
+    // [신규] 통합 검색 로직 (와일드카드 학번/이름 모두 적용)
     function processSearch() {
         var inputEl = document.getElementById('inputSearch');
         var rawVal = inputEl.value.trim();
@@ -416,7 +416,7 @@
         var btn = document.getElementById('btnStep1');
         btn.innerHTML = "조회 중..."; btn.disabled = true;
 
-        // 1. 와일드카드(?) 검색
+        // 1. 와일드카드(?) 검색 (학번, 이름 모두 적용)
         if (rawVal.includes("?")) {
             db.ref('students').once('value').then(function(snapshot) {
                 btn.innerHTML = "조회하기"; btn.disabled = false;
@@ -432,7 +432,8 @@
 
                 Object.keys(allData).forEach(function(key) {
                     var sData = allData[key];
-                    if (regex.test(sData.name)) {
+                    // [수정 포인트] 이름 뿐만 아니라 학번(key)도 정규식으로 검사
+                    if (regex.test(sData.name) || regex.test(key)) {
                         matches.push({ id: key, name: sData.name, data: sData });
                     }
                 });
@@ -442,7 +443,7 @@
         }
         // 2. 일반 검색 (숫자면 학번, 아니면 이름)
         else {
-            // 숫자로만 구성되어 있으면 학번으로 간주
+            // 숫자로만 구성되어 있으면 학번으로 간주 (정확히 일치하는 경우)
             if (/^\d+$/.test(rawVal)) {
                 db.ref('students/' + rawVal).once('value').then(function(snapshot) {
                     btn.innerHTML = "조회하기"; btn.disabled = false;
@@ -455,7 +456,7 @@
                     }
                 });
             } else {
-                // 이름으로 검색
+                // 이름으로 검색 (정확히 일치하는 경우)
                 db.ref('students').orderByChild('name').equalTo(rawVal).once('value').then(function(snapshot) {
                     btn.innerHTML = "조회하기"; btn.disabled = false;
                     if (snapshot.exists()) {
@@ -676,47 +677,47 @@
 
             if(semesterNode.subjects) {
               semesterNode.subjects.forEach(function(subjectNode) {
-                 var gradeText = "";
-                 if (subjectNode.items) {
-                   var totalCat = subjectNode.items.find(function(c) { return c.category === "종합"; });
-                   if (totalCat) {
-                     var gradeItem = totalCat.items.find(function(i) { return i.item === "등급"; });
-                     if (gradeItem && gradeItem.score && String(gradeItem.score).trim() !== "") {
-                        gradeText = gradeItem.score;
-                     }
-                   }
-                 }
-                 
-                 var leftGroupHtml = '<span>' + subjectNode.name + '</span>';
-                 if (gradeText) {
-                    leftGroupHtml += '<span class="grade-badge">' + gradeText + '등급</span>';
-                 }
+                  var gradeText = "";
+                  if (subjectNode.items) {
+                    var totalCat = subjectNode.items.find(function(c) { return c.category === "종합"; });
+                    if (totalCat) {
+                      var gradeItem = totalCat.items.find(function(i) { return i.item === "등급"; });
+                      if (gradeItem && gradeItem.score && String(gradeItem.score).trim() !== "") {
+                         gradeText = gradeItem.score;
+                      }
+                    }
+                  }
+                  
+                  var leftGroupHtml = '<span>' + subjectNode.name + '</span>';
+                  if (gradeText) {
+                     leftGroupHtml += '<span class="grade-badge">' + gradeText + '등급</span>';
+                  }
 
-                 var normSubject = normalizeInternalSubjectName(subjectNode.name);
-                 if (normSubject && hasInternalHistory(normSubject)) { 
-                    leftGroupHtml += '<span class="trend-badge" onclick="event.stopPropagation(); showInternalTrendGraph(\'' + normSubject + '\')">' +
-                              '<svg class="trend-svg" viewBox="0 0 24 24">' +
-                                '<path d="M4 4 L4 20 L20 20" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
-                                '<polyline points="7 16 11 12 15 14 19 8" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
-                              '</svg>' +
-                              '</span>';
-                 }
+                  var normSubject = normalizeInternalSubjectName(subjectNode.name);
+                  if (normSubject && hasInternalHistory(normSubject)) { 
+                     leftGroupHtml += '<span class="trend-badge" onclick="event.stopPropagation(); showInternalTrendGraph(\'' + normSubject + '\')">' +
+                                      '<svg class="trend-svg" viewBox="0 0 24 24">' +
+                                        '<path d="M4 4 L4 20 L20 20" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
+                                        '<polyline points="7 16 11 12 15 14 19 8" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
+                                      '</svg>' +
+                                      '</span>';
+                  }
 
-                 var subjectBtn = document.createElement('button');
-                 subjectBtn.className = 'accordion-btn level-3';
-                 subjectBtn.innerHTML = '<div class="accordion-header-group">' + leftGroupHtml + '</div><span class="arrow"></span>';
+                  var subjectBtn = document.createElement('button');
+                  subjectBtn.className = 'accordion-btn level-3';
+                  subjectBtn.innerHTML = '<div class="accordion-header-group">' + leftGroupHtml + '</div><span class="arrow"></span>';
 
-                 var subjectPanel = document.createElement('div');
-                 subjectPanel.className = 'panel';
-                 
-                 semesterPanel.appendChild(subjectBtn);
-                 semesterPanel.appendChild(subjectPanel);
-                 subjectBtn.onclick = function() { togglePanel(this, subjectPanel); };
+                  var subjectPanel = document.createElement('div');
+                  subjectPanel.className = 'panel';
+                  
+                  semesterPanel.appendChild(subjectBtn);
+                  semesterPanel.appendChild(subjectPanel);
+                  subjectBtn.onclick = function() { togglePanel(this, subjectPanel); };
 
-                 var tableContainer = document.createElement('div');
-                 tableContainer.className = 'panel-content';
-                 tableContainer.innerHTML = getTableHTML(subjectNode.items);
-                 subjectPanel.appendChild(tableContainer);
+                  var tableContainer = document.createElement('div');
+                  tableContainer.className = 'panel-content';
+                  tableContainer.innerHTML = getTableHTML(subjectNode.items);
+                  subjectPanel.appendChild(tableContainer);
               });
             }
           });
@@ -1009,7 +1010,7 @@
       if (categoryList && categoryList.length > 0) {
         for (var k = 0; k < categoryList.length; k++) {
           var category = categoryList[k].category; 
-          var items = categoryList[k].items;       
+          var items = categoryList[k].items;        
           var categoryScore = ""; 
           var displayItems = []; 
           
