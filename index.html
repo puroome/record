@@ -34,22 +34,22 @@
     h2 { color: #333; margin-bottom: 25px; }
     p { color: #666; font-size: 14px; margin-bottom: 15px; }
 
-    /* --- [추가됨] 개발자 브랜드 로고 스타일 --- */
+    /* --- 개발자 브랜드 로고 스타일 --- */
     .developer-brand {
       position: absolute;
       top: 20px;
       right: 25px;
       font-size: 11px;
-      color: #b0b0b0;        /* 은은한 회색 */
+      color: #b0b0b0;        
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       z-index: 10;
-      text-transform: uppercase; /* 대문자로 변환 */
+      text-transform: uppercase; 
       cursor: default;
       opacity: 0.8;
     }
     .developer-brand:hover {
       opacity: 1;
-      color: #4285F4; /* 마우스 올리면 브랜드 컬러로 변경 (선택사항) */
+      color: #4285F4;
       transition: 0.3s;
     }
     
@@ -122,11 +122,21 @@
     .modal-box { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.25s; display: flex; flex-direction: column; gap: 15px; position: relative; }
     .modal-title { font-size: 19px; font-weight: bold; color: #333; margin-bottom: 5px; }
     .modal-msg { font-size: 15px; color: #555; line-height: 1.6; word-break: keep-all; }
+    
     .modal-btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
     .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; }
     .modal-btn.confirm { background-color: #4285F4; color: white; }
     .modal-btn.cancel { background-color: #e0e0e0; color: #555; }
     
+    /* [추가됨] 동명이인 선택 버튼 스타일 */
+    .option-btn {
+      background-color: #f8f9fa; color: #333; padding: 14px;
+      border: 1px solid #ddd; border-radius: 8px; width: 100%;
+      font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 5px;
+      transition: 0.2s;
+    }
+    .option-btn:hover { background-color: #e8f0fe; color: #1967d2; border-color: #1967d2; }
+
     .close-icon { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 24px; color: #999; font-weight: bold; line-height: 1; }
     .close-icon:hover { color: #333; }
 
@@ -167,7 +177,11 @@
     <div class="modal-box" style="max-width: 380px;">
       <div id="modalTitle" class="modal-title">알림</div>
       <div id="modalMsg" class="modal-msg">내용</div>
-      <div class="modal-btn-group">
+      
+      <div id="modalOptions" style="display:none; flex-direction:column; gap:5px; margin-top:10px; width:100%;">
+        </div>
+
+      <div id="modalBtnGroup" class="modal-btn-group">
         <button id="modalBtnCancel" class="modal-btn cancel" style="display:none;" onclick="closeModal()">취소</button>
         <button id="modalBtnConfirm" class="modal-btn confirm" onclick="closeModal()">확인</button>
       </div>
@@ -238,7 +252,9 @@
         document.getElementById('mainTitle').style.display = showMainTitle ? 'block' : 'none';
     };
 
+    // ---------------- [수정] 모달 관련 함수들 ----------------
     function showAlert(title, msg, callback) {
+      resetModalState(); // 모달 초기화
       document.getElementById('modalTitle').innerText = title;
       document.getElementById('modalMsg').innerHTML = msg.replace(/\n/g, "<br>");
       document.getElementById('modalBtnCancel').style.display = 'none';
@@ -246,7 +262,9 @@
       onModalConfirm = function() { closeModal(); if(callback) callback(); };
       document.getElementById('customModal').style.display = 'flex';
     }
+
     function showConfirm(title, msg, yesCallback) {
+      resetModalState(); // 모달 초기화
       document.getElementById('modalTitle').innerText = title;
       document.getElementById('modalMsg').innerHTML = msg;
       document.getElementById('modalBtnCancel').style.display = 'block';
@@ -254,9 +272,46 @@
       onModalConfirm = function() { closeModal(); if(yesCallback) yesCallback(); };
       document.getElementById('customModal').style.display = 'flex';
     }
-    function closeModal() { document.getElementById('customModal').style.display = 'none'; }
-    document.getElementById('modalBtnConfirm').onclick = function() { if (onModalConfirm) onModalConfirm(); else closeModal(); };
 
+    // [추가됨] 동명이인 선택 모달
+    function showSelectionModal(name, ids, callback) {
+      resetModalState(); // 초기화
+      document.getElementById('modalTitle').innerText = "학번 선택";
+      document.getElementById('modalMsg').innerText = "찾는 '" + name + "'를 선택하세요.";
+
+      // 기본 버튼 그룹 숨김
+      document.getElementById('modalBtnGroup').style.display = 'none';
+      
+      // 옵션 버튼 생성
+      var optContainer = document.getElementById('modalOptions');
+      optContainer.innerHTML = ""; // 기존 내용 비움
+      optContainer.style.display = 'flex';
+
+      ids.forEach(function(id) {
+        var btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = id;
+        btn.onclick = function() {
+          closeModal();
+          callback(id);
+        };
+        optContainer.appendChild(btn);
+      });
+
+      document.getElementById('customModal').style.display = 'flex';
+    }
+
+    function resetModalState() {
+      // 모달 상태를 기본(알림창)으로 되돌림
+      document.getElementById('modalOptions').style.display = 'none';
+      document.getElementById('modalBtnGroup').style.display = 'flex';
+      document.getElementById('modalBtnConfirm').onclick = function() { if (onModalConfirm) onModalConfirm(); else closeModal(); };
+    }
+
+    function closeModal() { document.getElementById('customModal').style.display = 'none'; }
+    // ---------------------------------------------------------
+
+    // ---------------- [수정] 자동 채우기 (동명이인 처리 포함) ----------------
     function autoFill(type) {
       if (isAutoFilling) return;
       var inputIds = document.getElementById('inputIds');
@@ -276,15 +331,27 @@
 
       var promise;
       if (type === 'id') {
+        // 학번 검색은 유니크하므로 그대로 유지
         promise = db.ref('students/' + searchVal).once('value').then(snap => {
            return snap.exists() ? { success: true, result: snap.val().name } : { success: false };
         });
       } else {
-        promise = db.ref('students').orderByChild('name').equalTo(searchVal).limitToFirst(1).once('value').then(snap => {
+        // [수정됨] 이름 검색: limitToFirst(1) 제거하여 모두 검색
+        promise = db.ref('students').orderByChild('name').equalTo(searchVal).once('value').then(snap => {
            if (snap.exists()) {
-             var foundId = Object.keys(snap.val())[0];
-             return { success: true, result: foundId };
-           } else { return { success: false }; }
+             var count = snap.numChildren();
+             if (count === 1) {
+               // 1명일 때: 바로 입력
+               var foundId = Object.keys(snap.val())[0];
+               return { success: true, result: foundId };
+             } else {
+               // [추가] 2명 이상일 때: 선택 필요
+               var ids = Object.keys(snap.val()).sort(); // 학번순 정렬
+               return { success: true, needSelect: true, ids: ids, name: searchVal };
+             }
+           } else { 
+             return { success: false }; 
+           }
         });
       }
 
@@ -292,15 +359,27 @@
         targetInput.classList.remove('loading');
         isAutoFilling = false;
         btn.disabled = false; btn.innerHTML = "확인하기";
+        
         if (response.success) {
-          targetInput.value = response.result;
-          btn.focus(); 
+          if (response.needSelect) {
+            // [추가] 동명이인 선택 모달 호출
+            targetInput.value = ""; // "자동 생성중..." 텍스트 지움
+            showSelectionModal(response.name, response.ids, function(selectedId) {
+              targetInput.value = selectedId;
+              btn.focus();
+            });
+          } else {
+            // 기존 로직
+            targetInput.value = response.result;
+            btn.focus(); 
+          }
         } else {
           targetInput.value = "";
           targetInput.blur();
         }
       });
     }
+    // ------------------------------------------------------------------
 
     function processStep1() {
       if (isAutoFilling) return;
@@ -602,7 +681,6 @@
           },
           scales: {
             y: {
-              // [수정됨] 1등급 위 여백 확보를 위해 최소값을 0.5로 설정
               min: 0.5,  
               max: 9,  
               reverse: true,
@@ -610,7 +688,6 @@
                 stepSize: 1, 
                 padding: 10,
                 callback: function(val) { 
-                  // [수정됨] 1 미만의 값(0.5 등)은 라벨 표시 안 함
                   if (val < 1 || val === 9) return ""; 
                   return Math.floor(val); 
                 } 
@@ -634,12 +711,11 @@
           plugins: {
             legend: { display: false },
             tooltip: {
-              displayColors: false, // 네모 박스 제거
+              displayColors: false, 
               callbacks: {
                 title: function() { return ""; },
                 label: function(context) { 
                   var d = trendData[context.dataIndex];
-                  // 텍스트 형식: "O월" 만 표시
                   return d.month + "월"; 
                 }
               }
