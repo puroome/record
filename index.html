@@ -24,7 +24,8 @@
     .container { 
       background: white; 
       max-width: 500px; 
-      margin: 30px auto; 
+      /* [수정] 상단 여백을 30px에서 10px로 줄여 화면 낭비 최소화 */
+      margin: 10px auto; 
       padding: 30px; 
       border-radius: 12px; 
       box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
@@ -69,8 +70,24 @@
     .step-area { display: none; }
     #step1 { display: block; } 
     
-    /* 결과 화면 헤더 */
-    .result-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #4285F4; padding-bottom: 15px; margin-bottom: 15px; margin-top: 30px; }
+    /* [수정] 결과 화면 헤더 고정 (Sticky Header) */
+    .result-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      border-bottom: 2px solid #4285F4; 
+      padding-bottom: 15px; 
+      margin-bottom: 15px; 
+      margin-top: 20px; /* 제목과 너무 붙지 않게 약간 조정 */
+      
+      /* 고정 관련 속성 추가 */
+      position: sticky;
+      top: 0;
+      background-color: white; /* 뒤의 내용이 비치지 않게 배경색 지정 */
+      z-index: 100; /* 다른 요소보다 위에 오도록 설정 */
+      padding-top: 10px; /* 상단 고정 시 위쪽 여백 확보 */
+    }
+
     .header-text-group { font-size: 20px; font-weight: bold; color: #333; }
     
     /* 아코디언 스타일 */
@@ -547,7 +564,10 @@
          globalScoreData = fetchedStudentData.scores || [];
          
          var html = '<div class="result-header">';
-         html += '<div class="header-text-group"><span style="color:#4285F4">' + currentName + '</span> 학생의 성적표</div>';
+         
+         // [수정] 이름 옆에 학번 추가 (녹색)
+         html += '<div class="header-text-group"><span style="color:#4285F4">' + currentName + '</span> <span style="color:#34a853; font-size: 0.9em;">(' + currentId + ')</span> 학생의 성적표</div>';
+         
          html += '</div>';
          html += '<div id="accordionArea"></div>';
          html += '<button class="btn btn-secondary" onclick="resetAll()">로그아웃</button>';
