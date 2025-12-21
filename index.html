@@ -339,8 +339,15 @@
         if (snapshot.exists()) {
           var info = snapshot.val();
           var sVer = info.version;        
-          var sDate = info.lastUpdated;  
-          document.getElementById('lastUpdatedDisplay').innerText = "Update: " + sDate;
+          // [수정됨] 날짜 포맷 변환 (YYYY-MM-DD HH:MM)
+          var d = new Date(info.lastUpdated);
+          var formattedDate = d.getFullYear() + '-' + 
+                              String(d.getMonth() + 1).padStart(2, '0') + '-' + 
+                              String(d.getDate()).padStart(2, '0') + ' ' + 
+                              String(d.getHours()).padStart(2, '0') + ':' + 
+                              String(d.getMinutes()).padStart(2, '0');
+
+          document.getElementById('lastUpdatedDisplay').innerText = "Update: " + formattedDate;
           
           var localVer = localStorage.getItem('cached_version');
           if (String(localVer) !== String(sVer)) {
