@@ -1,423 +1,1084 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>성적 관리 앱</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4A90E2">
-    <link rel="icon" type="image/png" href="favicon.png">
-    <style>
-        :root {
-            --primary-color: #4A90E2;
-            --secondary-color: #f5f7fa;
-            --text-color: #333;
-            --grade-1-color: #2ecc71;
-            --grade-2-color: #3498db;
-            --grade-3-color: #f1c40f;
-            --grade-4-color: #e67e22;
-            --grade-5-color: #e74c3c;
-        }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>광남고 성적 조회</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="manifest" href="manifest.json">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Noto Sans KR', sans-serif;
-        }
+  <style>
+    /* 1. 기본 설정 */
+    body { 
+      font-family: 'Malgun Gothic', -apple-system, sans-serif; 
+      padding: 20px; 
+      background-color: #f4f6f8; 
+      text-align: center; 
+      margin: 0;
+      overscroll-behavior-y: contain; 
+      user-select: none; -webkit-user-select: none;
+    }
 
-        body {
-            background-color: var(--secondary-color);
-            color: var(--text-color);
-            padding-bottom: 70px;
-        }
+    /* 컨테이너 */
+    .container { 
+      background: white; 
+      max-width: 500px; 
+      margin: 10px auto; 
+      padding: 30px; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+      position: relative; 
+      transition: max-width 0.3s;
+    }
+    
+    /* 결과 화면 모드 */
+    .container.result-mode {
+      background: transparent;
+      box-shadow: none;
+      padding: 0;
+      max-width: 600px; 
+    }
 
-        .header {
-            background-color: white;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+    h2 { color: #333; margin-bottom: 25px; }
+    p { color: #666; font-size: 14px; margin-bottom: 15px; }
 
-        .back-btn {
-            font-size: 20px;
-            margin-right: 20px;
-            color: var(--text-color);
-            cursor: pointer;
-        }
+    /* 메인 헤더 */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: -30px;
+      margin-left: -30px;
+      margin-right: -30px;
+      padding: 20px 25px;
+      margin-bottom: 10px;
+    }
+    .developer-brand, .last-updated {
+      font-size: 11px; color: #b0b0b0; font-family: Roboto, sans-serif; cursor: default;
+    }
+    .developer-brand { text-transform: uppercase; }
+    
+    /* 입력창 공통 */
+    input { 
+      width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; transition: 0.3s; 
+      user-select: text; -webkit-user-select: text;
+    }
+    input:focus { border-color: #4285F4; outline: none; }
+    
+    .btn { width: 100%; padding: 14px; background-color: #4285F4; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+    .btn:hover { background-color: #3367d6; }
+    .btn:disabled { background-color: #ccc; cursor: not-allowed; } 
+    .btn-secondary { background-color: #fff; color: #555; border: 1px solid #ddd; margin-top: 30px; }
+    
+    .step-area { display: none; }
+    #step1 { display: block; } 
 
-        .header-title {
-            font-size: 20px;
-            font-weight: bold;
-        }
+    /* 상단 고정 영역 (이름 + 탭) */
+    .sticky-header-group {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background-color: #f4f6f8; 
+      padding-top: 10px;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
 
-        .container {
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
+    /* 결과 화면 상단 정보 */
+    .result-info-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 0 5px 10px 5px;
+    }
+    .student-name { font-size: 24px; font-weight: 800; color: #4285F4; margin-right: 8px; }
+    .student-id { font-size: 18px; font-weight: 300; color: #777; }
+    .logout-text { font-size: 13px; color: #999; cursor: pointer; text-decoration: underline; }
 
-        /* 내신/모의고사 탭 스타일 */
-        .tab-container {
-            display: flex;
-            background-color: white;
-            border-radius: 15px;
-            padding: 5px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
+    /* 탭(Tab) 스타일 */
+    .tab-header {
+      display: flex;
+      justify-content: center;
+      background: white;
+      border-radius: 12px;
+      padding: 5px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .tab-btn {
+      flex: 1; padding: 12px; border: none; background: transparent;
+      font-size: 15px; font-weight: bold; color: #777; cursor: pointer;
+      border-radius: 8px; transition: 0.2s;
+    }
+    .tab-btn.active { background-color: #e8f0fe; color: #4285F4; }
+    .tab-content { display: none; animation: fadeIn 0.3s; padding-bottom: 40px;}
+    .tab-content.active { display: block; }
 
-        .tab {
-            flex: 1;
-            text-align: center;
-            padding: 12px;
-            cursor: pointer;
-            border-radius: 12px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
+    /* 학기(Semester) 아코디언 스타일 */
+    .semester-wrapper {
+        margin-bottom: 15px;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
 
-        .tab.active {
-            background-color: var(--primary-color);
-            color: white;
-        }
+    .semester-btn {
+        width: 100%;
+        padding: 15px 20px;
+        background-color: #e6f4ea; 
+        color: #1b5e20;
+        font-size: 16px;
+        font-weight: bold;
+        text-align: left;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        outline: none;
+    }
+    .semester-btn:hover { background-color: #dceed0; }
+    
+    .semester-panel {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+        background: white;
+    }
+    .semester-panel.open {
+        max-height: none; 
+        padding-bottom: 10px;
+    }
 
-        /* 내신 리스트 스타일 */
-        .grade-item {
-            background-color: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
+    /* 과목 아코디언 버튼 */
+    .accordion-btn {
+      background-color: #fff; color: #333; cursor: pointer; padding: 16px 20px; width: 100%; text-align: left;
+      border: none; border-bottom: 1px solid #f4f6f8; outline: none; font-size: 15px;
+      transition: 0.2s; display: flex; justify-content: space-between; align-items: center;
+    }
+    .accordion-btn:hover { background-color: #fafafa; }
+    .accordion-btn:last-child { border-bottom: none; }
+    .accordion-btn.active { background-color: #f8fbff; color: #1967d2; font-weight: bold; border-bottom: 1px solid #e1eaf9; }
+    
+    /* 과목명 옆에 등급, 아이콘 배치 */
+    .accordion-header-group { 
+        display: flex; 
+        align-items: center; 
+        gap: 15px; /* [수정됨] 간격 넓힘 */
+        flex: 1;
+        overflow: hidden;
+    }
+    .subject-name { 
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; 
+        margin-right: 2px;
+    }
 
-        .grade-item:active {
-            transform: scale(0.98);
-        }
+    /* 등급 뱃지 스타일 */
+    .grade-badge {
+      background-color: #e8f0fe; color: #1967d2;              
+      padding: 4px 10px; border-radius: 12px;         
+      font-size: 13px; font-weight: bold; /* [수정됨] 800 -> bold */
+      white-space: nowrap;
+      min-width: 35px; text-align: center;
+    }
+    .accordion-btn.active .grade-badge { background-color: #fff; border: 1px solid #d2e3fc; }
 
-        .grade-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    /* 트렌드 아이콘 */
+    .trend-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px;
+      background-color: #ffefee; 
+      border-radius: 50%;         
+      cursor: pointer; 
+      transition: 0.2s;
+      margin-left: 2px;
+    }
+    .trend-badge:hover { transform: scale(1.1); background-color: #ffdce0; }
 
-        /* [수정] 내신 과목명 비율 및 스타일 */
-        .grade-header .subject-title {
-            flex: 3; /* 과목명 영역 비율 증가 (예: 3만큼 차지) */
-            font-weight: bold;
-            font-size: 16px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-right: 10px;
-        }
+    .trend-svg {
+      width: 14px; height: 14px;
+      stroke: #ff5252;
+      stroke-width: 2.5;
+      fill: none;
+      stroke-linecap: round; stroke-linejoin: round;
+      pointer-events: none; 
+    }
 
-        /* [수정] 내신 등급 및 아이콘 영역 컨테이너 */
-        .grade-header .grade-right {
-            flex: 1; /* 등급 영역 비율 (예: 1만큼 차지) */
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 12px; /* [수정] 아이템 간 간격 추가 */
-        }
+    /* 패널 (내용) */
+    .panel {
+      padding: 0; background-color: #fff; max-height: 0; overflow: hidden; transition: max-height 0.2s ease-out; 
+    }
+    .panel-content { padding: 10px 15px 20px 15px; background-color: #fcfcfc; border-bottom: 1px solid #eee; }
+    
+    .arrow::after { content: '▼'; font-size: 10px; float: right; transform: rotate(-90deg); transition: 0.2s; color: #ccc; margin-left: 10px; }
+    .active .arrow::after { transform: rotate(0deg); color: #1967d2; }
+    .semester-arrow::after { content: '▼'; font-size: 12px; float: right; transform: rotate(0deg); transition: 0.2s; color: #1b5e20; }
+    .semester-btn.active .semester-arrow::after { transform: rotate(180deg); }
 
-        .grade-circle {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            /* font-weight: bold; [수정] 폰트 두께 제거하여 모의고사와 동일하게 */
-            font-size: 18px;
-        }
+    /* 테이블 스타일 */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; margin-top: 5px; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #eee; }
+    th, td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
+    thead tr { background-color: #f8f9fa; color: #555; font-size: 13px; }
+    
+    /* [수정됨] 테이블 비율 8:2로 변경 */
+    th:nth-child(1) { text-align: left; width: 80%; padding-left: 15px; }
+    th:nth-child(2) { text-align: center; width: 20%; }
+    
+    .category-row td { 
+      font-weight: bold; font-size: 14px; color: #333; text-align: left; padding-left: 15px; background-color: #fdfdfd; border-top: 1px solid #eee;
+    }
+    .bg-exam { border-left: 3px solid #81c995; } 
+    .bg-perform { border-left: 3px solid #f28b82; } 
+    
+    .item-row td:nth-child(1) { padding-left: 25px; color: #666; text-align: left; }
+    .item-row td:nth-child(2) { text-align: center; font-weight: bold; color: #333; }
+    .item-row:last-child td { border-bottom: none; }
 
-        .graph-icon {
-            color: #999;
-            font-size: 20px;
-            padding: 5px;
-        }
-        
-        /* 모의고사 리스트 스타일 */
-        .mock-item {
-            background-color: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-        }
+    /* 모달 공통 */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
+    .modal-box { background: white; padding: 25px; border-radius: 16px; width: 85%; max-width: 360px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); animation: popIn 0.2s; position: relative; }
+    .modal-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 8px; }
+    .modal-msg { font-size: 15px; color: #555; line-height: 1.5; word-break: keep-all; margin-bottom: 20px; }
+    
+    .modal-btn-group { display: flex; gap: 10px; }
+    .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.1s; }
+    .modal-btn.confirm { background-color: #4285F4; color: white; }
+    .modal-btn.cancel { background-color: #f1f3f4; color: #555; }
+    
+    /* 동명이인 선택 버튼 */
+    .option-btn {
+      background-color: #fff; color: #333; padding: 15px;
+      border: 1px solid #eee; border-radius: 10px; width: 100%;
+      font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 8px;
+      transition: 0.2s; text-align: left; display: flex; justify-content: space-between;
+    }
+    .option-btn:hover { background-color: #f8fbff; border-color: #4285F4; color: #1967d2; }
+    
+    .close-icon { 
+        position: absolute; top: 15px; right: 15px; 
+        cursor: pointer; font-size: 24px; color: #ccc; line-height: 1; 
+        z-index: 10; padding: 5px; 
+    }
+    .close-icon:hover { color: #333; }
+    
+    @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  </style>
 
-        .mock-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            gap: 12px; /* [수정] 아이템 간 간격 추가 */
-        }
-
-        .mock-subject {
-            font-weight: bold;
-            font-size: 16px;
-            flex: 1;
-        }
-        
-        .mock-grade-badge {
-             background-color: var(--secondary-color);
-             padding: 5px 12px;
-             border-radius: 20px;
-             font-size: 14px;
-             font-weight: 500;
-        }
-
-        .mock-details {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            background-color: var(--secondary-color);
-            padding: 15px;
-            border-radius: 12px;
-        }
-
-        .detail-item {
-            text-align: center;
-        }
-
-        .detail-label {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 5px;
-        }
-
-        .detail-value {
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        /* 등급별 색상 유틸리티 클래스 */
-        .grade-1 { background-color: var(--grade-1-color); color: white; }
-        .grade-2 { background-color: var(--grade-2-color); color: white; }
-        .grade-3 { background-color: var(--grade-3-color); color: white; }
-        .grade-4 { background-color: var(--grade-4-color); color: white; }
-        .grade-5 { background-color: var(--grade-5-color); color: white; }
-        .text-grade-1 { color: var(--grade-1-color); }
-        .text-grade-2 { color: var(--grade-2-color); }
-        .text-grade-3 { color: var(--grade-3-color); }
-        .text-grade-4 { color: var(--grade-4-color); }
-        .text-grade-5 { color: var(--grade-5-color); }
-
-        /* 하단 네비게이션 */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background-color: white;
-            display: flex;
-            justify-content: space-around;
-            padding: 15px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: #999;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        .nav-item.active {
-            color: var(--primary-color);
-        }
-
-        .nav-item i {
-            font-size: 20px;
-            margin-bottom: 5px;
-        }
-    </style>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
-    <div class="header">
-        <i class="fas fa-arrow-left back-btn"></i>
-        <div class="header-title">성적 확인</div>
+  <div class="container" id="mainContainer">
+    
+    <div id="mainHeaderBar" class="header-bar">
+      <div id="lastUpdatedDisplay" class="last-updated"></div>
+      <div class="developer-brand">ⓒ JEONGKAPSU</div>
     </div>
 
-    <div class="container">
-        <div class="tab-container">
-            <div class="tab active" onclick="switchTab('school')">내신</div>
-            <div class="tab" onclick="switchTab('mock')">모의고사</div>
-        </div>
-
-        <div id="school-section">
-             </div>
-
-        <div id="mock-section" style="display: none;">
-             </div>
+    <h2 id="mainTitle">광남고 성적 조회</h2>
+    
+    <div id="step1" class="step-area">
+      <p>학번 또는 이름을 입력해주세요.</p>
+      <input type="text" id="inputSearch" placeholder="예: 2101 또는 홍길동" onkeydown="if(event.key === 'Enter') processSearch()">
+      <button id="btnStep1" onclick="processSearch()" class="btn">조회하기</button>
     </div>
 
-    <div class="bottom-nav">
-        <div class="nav-item">
-            <i class="fas fa-home"></i>
-            <span>홈</span>
-        </div>
-        <div class="nav-item active">
-            <i class="fas fa-chart-bar"></i>
-            <span>성적</span>
-        </div>
-        <div class="nav-item">
-            <i class="fas fa-user"></i>
-            <span>마이페이지</span>
-        </div>
+    <div id="step2-register" class="step-area">
+      <h3 style="color:#4285F4">🔐 비밀번호 설정</h3>
+      <p>처음 접속하셨군요!<br>사용할 비밀번호를 설정해주세요.</p>
+      <input type="password" id="regPw1" placeholder="새 비밀번호 (4자리 이상)">
+      <input type="password" id="regPw2" placeholder="비밀번호 확인">
+      <button onclick="processRegister()" class="btn">설정하고 성적 조회하기</button>
     </div>
 
-    <script>
-        // 임시 데이터 (실제 앱에서는 서버나 DB에서 가져옴)
-        const schoolGradeData = [
-            { subject: '국어', grade: 2, score: 88, avg: 75 },
-            { subject: '수학', grade: 1, score: 96, avg: 70 },
-            { subject: '영어', grade: 3, score: 78, avg: 72 },
-            { subject: '한국사', grade: 1, score: 100, avg: 80 },
-            { subject: '통합사회', grade: 2, score: 90, avg: 78 },
-            { subject: '통합과학', grade: 2, score: 92, avg: 76 }
-        ];
+    <div id="step2-login" class="step-area">
+      <h3 style="color:#4285F4">🔒 본인 확인</h3>
+      <p>설정했던 비밀번호를 입력하세요.</p>
+      <input type="password" id="loginPw" placeholder="비밀번호 입력" onkeydown="if(event.key === 'Enter') processLogin()">
+      <button onclick="processLogin()" class="btn">성적 확인하기</button>
+    </div>
 
-        const mockGradeData = [
-            { subject: '국어', grade: 2, standardScore: 128, percentile: 93 },
-            { subject: '수학', grade: 1, standardScore: 142, percentile: 99 },
-            { subject: '영어', grade: 2, score: 85, isAbsolute: true },
-            { subject: '한국사', grade: 1, score: 48, isAbsolute: true },
-            { subject: '생활과 윤리', grade: 3, standardScore: 62, percentile: 81 },
-            { subject: '지구과학 I', grade: 2, standardScore: 66, percentile: 90 }
-        ];
+    <div id="step3-result" class="step-area">
+      </div>
 
-        // 등급에 따른 색상 클래스 반환 함수
-        function getGradeClass(grade) {
-            if (grade <= 1) return 'grade-1';
-            if (grade <= 2) return 'grade-2';
-            if (grade <= 3) return 'grade-3';
-            if (grade <= 4) return 'grade-4';
-            return 'grade-5';
+  </div>
+
+  <div id="customModal" class="modal-overlay" onclick="if(event.target === this) closeModal()">
+    <div class="modal-box" id="commonModalBox">
+      <div id="modalTitle" class="modal-title">알림</div>
+      <div id="modalMsg" class="modal-msg">내용</div>
+      <div id="modalOptions" style="display:none; flex-direction:column; gap:5px; margin-top:10px; width:100%; max-height: 250px; overflow-y: auto;"></div>
+      <div id="modalBtnGroup" class="modal-btn-group">
+        <button id="modalBtnCancel" class="modal-btn cancel" style="display:none;" onclick="closeModal()">취소</button>
+        <button id="modalBtnConfirm" class="modal-btn confirm" onclick="closeModal()">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="graphModal" class="modal-overlay" onclick="if(event.target === this) closeGraphModal()">
+    <div class="modal-box" style="max-width: 500px; width: 90%;">
+      <span class="close-icon" onclick="closeGraphModal()">&times;</span>
+      <div id="graphTitle" class="modal-title" style="margin-bottom: 20px;">등급 추이</div>
+      <div style="position: relative; height: 300px; width: 100%;">
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================
+       1. Helper functions (Modal Close fix)
+       ========================================= */
+    function closeGraphModal() { 
+        document.getElementById('graphModal').style.display = 'none'; 
+    }
+    
+    function closeModal() { 
+        document.getElementById('customModal').style.display = 'none'; 
+    }
+
+    /* =========================================
+       2. Firebase & 초기 설정
+       ========================================= */
+    const firebaseConfig = {
+      apiKey: "AIzaSyDzAYguXSjmjNJFEYPplLKUj_twhOO0Llk",
+      authDomain: "record-99cf0.firebaseapp.com",
+      databaseURL: "https://record-99cf0-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "record-99cf0",
+      storageBucket: "record-99cf0.firebasestorage.app",
+      messagingSenderId: "127235673442",
+      appId: "1:127235673442:web:7ebee7c66698c81b70703b"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const MASTER_PW = "rhkdska25"; 
+
+    var currentId = "";
+    var currentName = "";
+    var globalScoreData = null; 
+    var onModalConfirm = null;
+    var fetchedStudentData = null; 
+    var myChart = null; 
+    var serverVersion = 0; 
+
+    document.addEventListener('contextmenu', function(event) { event.preventDefault(); });
+
+    window.addEventListener('load', function() {
+        checkAppVersion();
+        history.replaceState({ step: 'step1' }, 'step1', '');
+    });
+
+    window.onpopstate = function(event) {
+        document.querySelectorAll('.step-area').forEach(el => el.style.display = 'none');
+        document.getElementById('step3-result').style.display = 'none';
+        document.getElementById('mainHeaderBar').style.display = 'flex';
+        document.getElementById('mainContainer').classList.remove('result-mode'); 
+
+        var showMainTitle = true;
+        if (event.state && event.state.step) {
+            var target = event.state.step;
+            if (target === 'step3') {
+                document.getElementById('step3-result').style.display = 'block';
+                document.getElementById('mainHeaderBar').style.display = 'none';
+                document.getElementById('mainContainer').classList.add('result-mode');
+                showMainTitle = false;
+            } else if (target === 'step2-login' || target === 'step2-register') {
+                document.getElementById(target).style.display = 'block';
+            } else {
+                document.getElementById('step1').style.display = 'block';
+                document.getElementById('inputSearch').value = ""; 
+            }
+        } else {
+            document.getElementById('step1').style.display = 'block';
         }
-        
-        // 등급 텍스트 색상 클래스 반환
-        function getTextGradeClass(grade) {
-            if (grade <= 1) return 'text-grade-1';
-            if (grade <= 2) return 'text-grade-2';
-            if (grade <= 3) return 'text-grade-3';
-            if (grade <= 4) return 'text-grade-4';
-            return 'text-grade-5';
-        }
+        document.getElementById('mainTitle').style.display = showMainTitle ? 'block' : 'none';
+    };
 
-        // 내신 데이터 렌더링
-        const schoolSection = document.getElementById('school-section');
-        schoolGradeData.forEach(item => {
-            const gradeItem = document.createElement('div');
-            gradeItem.className = 'grade-item';
-            const gradeClass = getGradeClass(item.grade);
-            
-            // [수정] HTML 구조 변경: 과목명과 등급/아이콘 영역을 분리하고 클래스 추가
-            gradeItem.innerHTML = `
-                <div class="grade-header">
-                    <span class="subject-title">${item.subject}</span>
-                    <div class="grade-right">
-                        <div class="grade-circle ${gradeClass}">${item.grade}</div>
-                        <i class="fas fa-chevron-right graph-icon"></i>
-                    </div>
-                </div>
-            `;
-            // 클릭 시 상세 정보 표시 (임시 기능)
-             gradeItem.addEventListener('click', () => {
-                alert(`${item.subject}\n점수: ${item.score}점\n평균: ${item.avg}점`);
+    function checkAppVersion() {
+      db.ref('info').once('value').then(function(snapshot) {
+        if (snapshot.exists()) {
+          var info = snapshot.val();
+          var sVer = info.version;        
+          var sDate = info.lastUpdated;  
+          document.getElementById('lastUpdatedDisplay').innerText = "Update: " + sDate;
+          
+          var localVer = localStorage.getItem('cached_version');
+          if (String(localVer) !== String(sVer)) {
+            localStorage.removeItem('cached_student_data'); 
+          }
+          serverVersion = sVer; 
+        }
+      }).catch(function(err) {
+        var localDate = localStorage.getItem('cached_date_str');
+        if(localDate) {
+           document.getElementById('lastUpdatedDisplay').innerText = "Update: " + localDate + " (Offline)";
+        }
+      });
+    }
+
+    /* =========================================
+       3. UI / Modal 로직
+       ========================================= */
+    function showAlert(title, msg, callback) {
+      resetModalState(); 
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalMsg').innerHTML = msg.replace(/\n/g, "<br>");
+      document.getElementById('modalBtnCancel').style.display = 'none';
+      document.getElementById('modalBtnConfirm').innerText = "확인";
+      onModalConfirm = function() { closeModal(); if(callback) callback(); };
+      document.getElementById('customModal').style.display = 'flex';
+    }
+
+    function showConfirm(title, msg, yesCallback) {
+      resetModalState(); 
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalMsg').innerHTML = msg;
+      document.getElementById('modalBtnCancel').style.display = 'block';
+      document.getElementById('modalBtnConfirm').innerText = "확인";
+      onModalConfirm = function() { closeModal(); if(yesCallback) yesCallback(); };
+      document.getElementById('customModal').style.display = 'flex';
+    }
+
+    function showSelectionList(matches, isAdmin) {
+      resetModalState();
+      document.getElementById('modalTitle').innerText = "학생 선택";
+      document.getElementById('modalMsg').innerHTML = "조회하려는 학생을 선택하세요.";
+      document.getElementById('modalBtnGroup').style.display = 'none';
+      
+      var optContainer = document.getElementById('modalOptions');
+      optContainer.innerHTML = ""; 
+      optContainer.style.display = 'flex';
+      
+      matches.forEach(function(m) {
+        var btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerHTML = '<span>' + m.name + '</span><span style="color:#888; font-weight:normal;">' + m.id + '</span>';
+        btn.onclick = function() { 
+            closeModal(); 
+            proceedWithSelection(m, isAdmin); 
+        };
+        optContainer.appendChild(btn);
+      });
+      document.getElementById('customModal').style.display = 'flex';
+    }
+
+    function resetModalState() {
+      document.getElementById('modalOptions').style.display = 'none';
+      document.getElementById('modalBtnGroup').style.display = 'flex';
+      document.getElementById('modalBtnConfirm').onclick = function() { if (onModalConfirm) onModalConfirm(); else closeModal(); };
+    }
+
+    /* =========================================
+       4. 검색 및 인증 로직
+       ========================================= */
+    function processSearch() {
+        var inputEl = document.getElementById('inputSearch');
+        var rawVal = inputEl.value.trim();
+        if (!rawVal) { showAlert("입력 오류", "학번 또는 이름을 입력해주세요."); return; }
+
+        var isAdmin = false;
+        if (rawVal.startsWith("@")) {
+            isAdmin = true;
+            rawVal = rawVal.substring(1).trim(); 
+        }
+        if (!rawVal) return;
+
+        var btn = document.getElementById('btnStep1');
+        btn.innerHTML = "조회 중..."; btn.disabled = true;
+
+        var searchPromise;
+        if (rawVal.includes("?")) {
+            searchPromise = db.ref('students').once('value').then(function(snapshot) {
+                if (!snapshot.exists()) return [];
+                var allData = snapshot.val();
+                var pattern = "^" + rawVal.replace(/\?/g, ".") + "$";
+                var regex = new RegExp(pattern);
+                var matches = [];
+                Object.keys(allData).forEach(function(key) {
+                    var sData = allData[key];
+                    if (regex.test(sData.name) || regex.test(key)) {
+                        matches.push({ id: key, name: sData.name, data: sData });
+                    }
+                });
+                return matches;
             });
-            schoolSection.appendChild(gradeItem);
-        });
-
-        // 모의고사 데이터 렌더링
-        const mockSection = document.getElementById('mock-section');
-        mockGradeData.forEach(item => {
-            const mockItem = document.createElement('div');
-            mockItem.className = 'mock-item';
-            const textGradeClass = getTextGradeClass(item.grade);
-            
-            let detailsHTML = '';
-            if (item.isAbsolute) {
-                 detailsHTML = `
-                    <div class="detail-item">
-                        <div class="detail-label">원점수</div>
-                        <div class="detail-value">${item.score}</div>
-                    </div>
-                     <div class="detail-item"></div> <div class="detail-item"></div>
-                `;
-            } else {
-                detailsHTML = `
-                    <div class="detail-item">
-                        <div class="detail-label">표준점수</div>
-                        <div class="detail-value">${item.standardScore}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">백분위</div>
-                        <div class="detail-value">${item.percentile}</div>
-                    </div>
-                     <div class="detail-item">
-                        <div class="detail-label">등급</div>
-                        <div class="detail-value ${textGradeClass}">${item.grade}</div>
-                    </div>
-                `;
-            }
-
-            mockItem.innerHTML = `
-                <div class="mock-header">
-                    <span class="mock-subject">${item.subject}</span>
-                    <span class="mock-grade-badge ${textGradeClass}">${item.grade}등급</span>
-                    <i class="fas fa-chevron-right graph-icon" style="margin-left: 0;"></i>
-                </div>
-                <div class="mock-details">
-                    ${detailsHTML}
-                </div>
-            `;
-            mockSection.appendChild(mockItem);
-        });
-
-        // 탭 전환 함수
-        function switchTab(tabName) {
-            const tabs = document.querySelectorAll('.tab');
-            const schoolSec = document.getElementById('school-section');
-            const mockSec = document.getElementById('mock-section');
-
-            tabs.forEach(tab => tab.classList.remove('active'));
-            
-            if (tabName === 'school') {
-                tabs[0].classList.add('active');
-                schoolSec.style.display = 'block';
-                mockSec.style.display = 'none';
-            } else {
-                tabs[1].classList.add('active');
-                schoolSec.style.display = 'none';
-                mockSec.style.display = 'block';
-            }
         }
-
-        // PWA 서비스 워커 등록
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    })
-                    .catch(err => {
-                        console.log('ServiceWorker registration failed: ', err);
+        else if (/^\d+$/.test(rawVal)) {
+             searchPromise = db.ref('students/' + rawVal).once('value').then(function(snapshot) {
+                if (snapshot.exists()) {
+                    return [{ id: rawVal, name: snapshot.val().name, data: snapshot.val() }];
+                }
+                return [];
+             });
+        } 
+        else {
+             searchPromise = db.ref('students').orderByChild('name').equalTo(rawVal).once('value').then(function(snapshot) {
+                var matches = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach(function(childSnap) {
+                        matches.push({ id: childSnap.key, name: childSnap.val().name, data: childSnap.val() });
                     });
-            });
+                }
+                return matches;
+             });
         }
-    </script>
+
+        searchPromise.then(function(matches) {
+            btn.innerHTML = "조회하기"; btn.disabled = false;
+            handleSearchResults(matches, isAdmin);
+        }).catch(function() {
+            btn.innerHTML = "조회하기"; btn.disabled = false;
+            showAlert("오류", "데이터를 불러오는 중 문제가 발생했습니다.");
+        });
+    }
+
+    function handleSearchResults(matches, isAdmin) {
+        matches.sort(function(a, b) { return parseInt(a.id) - parseInt(b.id); });
+
+        if (matches.length === 0) {
+            showAlert("알림", "일치하는 학생 정보가 없습니다.");
+        } else if (matches.length === 1) {
+            proceedWithSelection(matches[0], isAdmin);
+        } else {
+            showSelectionList(matches, isAdmin);
+        }
+    }
+
+    function proceedWithSelection(studentObj, isAdmin) {
+        currentId = studentObj.id;
+        currentName = studentObj.name;
+        
+        studentObj.data.key = currentId;
+        fetchedStudentData = studentObj.data;
+        localStorage.setItem('cached_student_data', JSON.stringify(fetchedStudentData));
+        if (serverVersion) {
+            var dateTxt = document.getElementById('lastUpdatedDisplay').innerText.replace("Update: ", "").replace(" (Offline)", "");
+            localStorage.setItem('cached_version', serverVersion);
+            localStorage.setItem('cached_date_str', dateTxt);
+        }
+
+        document.getElementById('step1').style.display = 'none';
+
+        if (isAdmin) {
+            loadScoreAndShow("##ADMIN_FREE_PASS##");
+        } else {
+            var storedPw = fetchedStudentData.pw ? String(fetchedStudentData.pw).trim() : "";
+            if (storedPw !== "") {
+                document.getElementById('step2-login').style.display = 'block';
+                document.getElementById('loginPw').value = ""; 
+                document.getElementById('loginPw').focus();
+                history.pushState({ step: 'step2-login' }, 'login', '');
+            } else {
+                document.getElementById('step2-register').style.display = 'block';
+                document.getElementById('regPw1').value = "";
+                document.getElementById('regPw2').value = "";
+                document.getElementById('regPw1').focus();
+                history.pushState({ step: 'step2-register' }, 'register', '');
+            }
+        }
+    }
+
+    function processRegister() {
+      var pw1 = document.getElementById('regPw1').value;
+      var pw2 = document.getElementById('regPw2').value;
+      if (!pw1 || pw1.length < 4) { showAlert("비밀번호 오류", "비밀번호는 4글자 이상이어야 합니다."); return; }
+      if (pw1 !== pw2) { showAlert("비밀번호 오류", "두 비밀번호가 일치하지 않습니다."); return; }
+      
+      var msg = "비밀번호를 설정하시겠습니까?<br><br>설정된 비밀번호: <b style='color:#4285F4'>" + pw1 + "</b>";
+      showConfirm("설정 확인", msg, function() { 
+        db.ref('students/' + currentId).update({ pw: pw1 }).then(function() {
+           if(fetchedStudentData) {
+              fetchedStudentData.pw = pw1;
+              localStorage.setItem('cached_student_data', JSON.stringify(fetchedStudentData));
+           }
+           showAlert("설정 완료", "비밀번호가 설정되었습니다.<br>성적을 조회합니다.", function() { loadScoreAndShow(pw1); });
+        }).catch(function(err) { showAlert("오류", "시스템 오류가 발생했습니다."); });
+      });
+    }
+
+    function processLogin() {
+      var pw = document.getElementById('loginPw').value;
+      if (!pw) { showAlert("입력 오류", "비밀번호를 입력하세요."); return; }
+      loadScoreAndShow(pw);
+    }
+
+    function loadScoreAndShow(pw) {
+      if (!fetchedStudentData) {
+         db.ref('students/' + currentId).once('value').then(function(snap){
+            if(snap.exists()) {
+               fetchedStudentData = snap.val();
+               fetchedStudentData.key = currentId; 
+               localStorage.setItem('cached_student_data', JSON.stringify(fetchedStudentData));
+               verifyAndRender(pw);
+            } else {
+               showAlert("오류", "데이터를 찾을 수 없습니다.");
+               resetAll();
+            }
+         });
+      } else { verifyAndRender(pw); }
+    }
+
+    function verifyAndRender(pw) {
+       var isMaster = (String(pw).trim() === MASTER_PW || String(pw) === "##ADMIN_FREE_PASS##");
+       var storedPw = fetchedStudentData.pw ? String(fetchedStudentData.pw).trim() : "";
+       var pwMatch = (storedPw === String(pw).trim());
+
+       if (pwMatch || isMaster) {
+         document.getElementById('mainContainer').classList.add('result-mode');
+         document.querySelectorAll('.step-area').forEach(el => el.style.display = 'none');
+         document.getElementById('mainTitle').style.display = 'none';
+         document.getElementById('mainHeaderBar').style.display = 'none';
+
+         document.getElementById('step3-result').style.display = 'block';
+         history.pushState({ step: 'step3' }, 'result', '');
+         globalScoreData = fetchedStudentData.scores || [];
+         
+         // Sticky Header Container 생성
+         var stickyContainer = document.createElement('div');
+         stickyContainer.className = 'sticky-header-group';
+
+         // 1. 학생 정보 헤더 (이름 학번)
+         var infoBar = document.createElement('div');
+         infoBar.className = 'result-info-bar';
+         infoBar.innerHTML = 
+            '<div>' +
+              '<span class="student-name">' + currentName + '</span>' +
+              '<span class="student-id">' + currentId + '</span>' +
+            '</div>' +
+            '<div class="logout-text" onclick="resetAll()">로그아웃</div>';
+         
+         stickyContainer.appendChild(infoBar);
+         
+         // 2. 탭 영역 (renderAccordionTree 내부에서 추가할 것임)
+         var tabContainer = document.createElement('div');
+         tabContainer.id = 'tabContainerArea';
+         stickyContainer.appendChild(tabContainer);
+
+         document.getElementById('step3-result').innerHTML = '';
+         document.getElementById('step3-result').appendChild(stickyContainer);
+
+         // 3. 컨텐츠 영역
+         var contentArea = document.createElement('div');
+         contentArea.id = 'resultContentArea';
+         document.getElementById('step3-result').appendChild(contentArea);
+         
+         renderAccordionTree(globalScoreData, contentArea, tabContainer);
+
+       } else {
+         showAlert("실패", "비밀번호가 일치하지 않습니다.");
+         document.getElementById('step2-login').style.display = 'block';
+         document.getElementById('loginPw').value = "";
+       }
+    }
+
+    /* =========================================
+       5. 렌더링 로직 (Tab + Semester Accordion)
+       ========================================= */
+    function renderAccordionTree(data, contentContainer, tabTargetDiv) {
+      if (!data || data.length === 0) {
+        contentContainer.innerHTML = '<div style="padding:40px; text-align:center; color:#999;">등록된 성적 데이터가 없습니다.</div>';
+        return;
+      }
+
+      // 탭 헤더 생성
+      var tabNav = document.createElement('div');
+      tabNav.className = 'tab-header';
+      
+      data.forEach(function(gradeNode, index) {
+        var tabBtn = document.createElement('button');
+        tabBtn.className = 'tab-btn';
+        if (index === 0) tabBtn.classList.add('active');
+        tabBtn.innerText = gradeNode.name; 
+        tabBtn.onclick = function() {
+           document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+           this.classList.add('active');
+           document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+           document.getElementById('grade-content-' + index).classList.add('active');
+        };
+        tabNav.appendChild(tabBtn);
+
+        // 학년별 컨텐츠 영역
+        var gradeContentDiv = document.createElement('div');
+        gradeContentDiv.id = 'grade-content-' + index;
+        gradeContentDiv.className = 'tab-content';
+        if (index === 0) gradeContentDiv.classList.add('active');
+
+        // 학기 순회
+        if (gradeNode.semesters) {
+           gradeNode.semesters.forEach(function(semNode) {
+              // 학기 Wrapper (아코디언 구조)
+              var semWrapper = document.createElement('div');
+              semWrapper.className = 'semester-wrapper';
+
+              // 학기 이름 정리
+              var cleanSemName = semNode.name.replace('[학기]', '').replace('학기', '').trim();
+              if(cleanSemName === "1" || cleanSemName === "2") cleanSemName += "학기";
+              else if(cleanSemName.indexOf("모의") > -1) cleanSemName = "모의고사";
+              else cleanSemName = semNode.name.replace('[학기]', '').trim();
+
+              // 학기 버튼
+              var semBtn = document.createElement('button');
+              semBtn.className = 'semester-btn';
+              semBtn.innerHTML = '<span>' + cleanSemName + '</span><span class="semester-arrow"></span>';
+              
+              var semPanel = document.createElement('div');
+              semPanel.className = 'semester-panel';
+              
+              semBtn.onclick = function() {
+                  this.classList.toggle('active');
+                  semPanel.classList.toggle('open');
+              };
+
+              // 과목 리스트
+              if (semNode.subjects) {
+                 semNode.subjects.forEach(function(subNode) {
+                    var gradeText = "";
+                    if (subNode.items) {
+                       var totalCat = subNode.items.find(c => c.category === "종합");
+                       if (totalCat) {
+                          var gradeItem = totalCat.items.find(i => i.item === "등급");
+                          if (gradeItem && gradeItem.score) gradeText = gradeItem.score;
+                       }
+                    }
+
+                    // 왼쪽 그룹: 이름 + 등급 + 아이콘
+                    // [수정됨] gap: 15px로 변경
+                    var leftHtml = '<div class="accordion-header-group">';
+                    leftHtml += '<span class="subject-name">' + subNode.name + '</span>';
+                    
+                    if (gradeText) {
+                       leftHtml += '<span class="grade-badge">' + gradeText + '등급</span>';
+                    }
+
+                    var normSubject = normalizeInternalSubjectName(subNode.name);
+                    if (normSubject && hasInternalHistory(normSubject)) { 
+                        leftHtml += '<span class="trend-badge" onclick="event.stopPropagation(); showInternalTrendGraph(\'' + normSubject + '\')">' +
+                                    '<svg class="trend-svg" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>' +
+                                    '</span>';
+                    }
+                    leftHtml += '</div>';
+
+                    var subBtn = document.createElement('button');
+                    subBtn.className = 'accordion-btn';
+                    subBtn.innerHTML = leftHtml + '<span class="arrow"></span>';
+                    
+                    var subPanel = document.createElement('div');
+                    subPanel.className = 'panel';
+                    
+                    subBtn.onclick = function() { togglePanel(this, subPanel); };
+                    
+                    var tableWrap = document.createElement('div');
+                    tableWrap.className = 'panel-content';
+                    tableWrap.innerHTML = getTableHTML(subNode.items);
+                    subPanel.appendChild(tableWrap);
+
+                    semPanel.appendChild(subBtn);
+                    semPanel.appendChild(subPanel);
+                 });
+              } else {
+                 var noSub = document.createElement('div');
+                 noSub.style.padding = "15px"; noSub.style.color="#999"; noSub.innerText = "과목 없음";
+                 semPanel.appendChild(noSub);
+              }
+
+              semWrapper.appendChild(semBtn);
+              semWrapper.appendChild(semPanel);
+              gradeContentDiv.appendChild(semWrapper);
+           });
+        }
+        contentContainer.appendChild(gradeContentDiv);
+      });
+
+      // 탭바를 Sticky 영역에 붙이기
+      tabTargetDiv.appendChild(tabNav);
+    }
+
+    function togglePanel(btn, panel) {
+      btn.classList.toggle("active");
+      if (panel.style.maxHeight) {
+        panel.style.maxHeight = null;
+      } else {
+        panel.style.maxHeight = panel.scrollHeight + "px";
+      }
+    }
+
+    /* =========================================
+       6. 데이터 처리 및 그래프 헬퍼 함수
+       ========================================= */
+    function normalizeSubjectName(name) {
+      if(!name) return "";
+      var n = name.replace(/\s/g, ""); 
+      if (n.includes("화법과작문")) return "국어";
+      if (n.includes("언어와매체")) return "국어"; 
+      if (n.includes("국어")) return "국어";
+      if (n.includes("확률과통계")) return "수학";
+      if (n.includes("미적분")) return "수학";
+      if (n.includes("기하")) return "수학";
+      if (n.includes("수학")) return "수학";
+      if (n.includes("영어")) return "영어";
+      return name;
+    }
+    
+    function normalizeInternalSubjectName(name) {
+      if (!name) return null;
+      var n = name.replace(/\s/g, ""); 
+      if (['공통국어1','공통국어2','문학','독서','화법과언어','국어','화법과작문'].includes(n) || n.indexOf('공통국어') > -1) return "국어";
+      if (['공통수학1','공통수학2','대수','미적분Ⅰ','미적분I','확률과통계','수학','수학Ⅰ','수학I','수학Ⅱ','수학II','미적분'].includes(n) || n.indexOf('공통수학') > -1) return "수학";
+      if (['공통영어1','공통영어2','영어Ⅰ','영어I','영어Ⅱ','영어II','영어독해와작문','영어'].includes(n) || n.indexOf('공통영어') > -1) return "영어";
+      return null;
+    }
+
+    function hasInternalHistory(targetSubject) {
+       if (!globalScoreData || globalScoreData.length === 0) return false;
+       for (var i = 0; i < globalScoreData.length; i++) {
+         var gradeNode = globalScoreData[i];
+         if (gradeNode.semesters) {
+           for (var j = 0; j < gradeNode.semesters.length; j++) {
+             var semNode = gradeNode.semesters[j];
+             if (semNode.subjects) {
+               for (var k = 0; k < semNode.subjects.length; k++) {
+                 var subNode = semNode.subjects[k];
+                 var norm = normalizeInternalSubjectName(subNode.name);
+                 if (norm === targetSubject) {
+                    if (subNode.items) {
+                       var totalCat = subNode.items.find(c => c.category === "종합");
+                       if (totalCat) {
+                         var gradeItem = totalCat.items.find(i => i.item === "등급");
+                         if (gradeItem && !isNaN(parseFloat(gradeItem.score))) return true; 
+                       }
+                    }
+                 }
+               }
+             }
+           }
+         }
+       }
+       return false;
+    }
+
+    // 내신 그래프
+    function showInternalTrendGraph(targetSubject) {
+      var trendDataMap = {}; 
+      var hasCommonSubject = false; 
+
+      if (globalScoreData && globalScoreData.length > 0) {
+        globalScoreData.forEach(function(gradeNode) {
+          var gradeNum = parseInt(gradeNode.name.replace(/[^0-9]/g, "")) || 0;
+          if (!gradeNode.semesters) return;
+          
+          gradeNode.semesters.forEach(function(semNode) {
+            var semNum = semNode.name.indexOf("1") > -1 ? 1 : (semNode.name.indexOf("2") > -1 ? 2 : 0);
+            if (!semNode.subjects) return;
+
+            semNode.subjects.forEach(function(subNode) {
+               if (subNode.name.indexOf("공통") > -1) hasCommonSubject = true;
+               var normName = normalizeInternalSubjectName(subNode.name);
+               if (normName === targetSubject) {
+                  if (subNode.items) {
+                     var totalCat = subNode.items.find(c => c.category === "종합");
+                     if (totalCat) {
+                        var gradeItem = totalCat.items.find(i => i.item === "등급");
+                        if (gradeItem && !isNaN(parseFloat(gradeItem.score))) {
+                           trendDataMap[gradeNum + "-" + semNum] = parseFloat(gradeItem.score);
+                        }
+                     }
+                  }
+               }
+            });
+          });
+        });
+      }
+
+      var fixedSlots = ["1-1", "1-2", "2-1", "2-2", "3-1", "3-2"];
+      var scores = fixedSlots.map(slot => trendDataMap[slot] !== undefined ? trendDataMap[slot] : null);
+
+      if (!scores.some(s => s !== null)) {
+        showAlert("알림", targetSubject + " 과목의 등급 데이터가 없습니다.");
+        return;
+      }
+
+      var yMax = hasCommonSubject ? 5 : 9;
+      document.getElementById('graphTitle').innerText = targetSubject + " (내신) 등급 추이";
+      document.getElementById('graphModal').style.display = 'flex';
+      renderChart(fixedSlots.map(s => {
+          var p = s.split('-'); return p[0]+"학년 "+p[1]+"학기";
+      }), scores, yMax, '#34a853');
+    }
+
+    // 모의고사 그래프
+    function showTrendGraph(subjectName) {
+      var targetSubject = normalizeSubjectName(subjectName);
+      if (!['국어', '수학', '영어'].includes(targetSubject)) return;
+
+      var trendData = [];
+      if (globalScoreData && globalScoreData.length > 0) {
+        globalScoreData.forEach(function(gradeNode) {
+          var gradeNum = parseInt(gradeNode.name.replace(/[^0-9]/g, "")) || 0;
+          if (!gradeNode.semesters) return;
+          gradeNode.semesters.forEach(function(semNode) {
+            if (!semNode.subjects) return;
+            semNode.subjects.forEach(function(subNode) {
+              var monthStr = subNode.name.replace(/[^0-9]/g, ""); 
+              var monthNum = parseInt(monthStr);
+              if (isNaN(monthNum)) return;
+              var gradeCategory = subNode.items.find(c => c.category === "등급");
+              if (gradeCategory) {
+                 var scoreItem = gradeCategory.items.find(it => normalizeSubjectName(it.item) === targetSubject);
+                 if (scoreItem && !isNaN(parseFloat(scoreItem.score))) {
+                   trendData.push({ grade: gradeNum, month: monthNum, score: parseFloat(scoreItem.score), sortKey: gradeNum * 100 + monthNum });
+                 }
+              }
+            });
+          });
+        });
+      }
+
+      if (trendData.length === 0) {
+        showAlert("알림", targetSubject + " 과목의 모의고사 데이터가 없습니다.");
+        return;
+      }
+
+      trendData.sort((a, b) => a.sortKey - b.sortKey);
+      var labels = trendData.map(d => d.grade + "학년 " + d.month + "월");
+      var scores = trendData.map(d => d.score);
+
+      document.getElementById('graphTitle').innerText = targetSubject + " (모의고사) 등급 추이";
+      document.getElementById('graphModal').style.display = 'flex';
+      renderChart(labels, scores, 9, '#4285F4');
+    }
+
+    function renderChart(labels, data, yMax, color) {
+      var ctx = document.getElementById('trendChart').getContext('2d');
+      if (myChart) myChart.destroy(); 
+
+      myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels, 
+          datasets: [{
+            label: '등급',
+            data: data,
+            borderColor: color,
+            backgroundColor: color.replace(')', ', 0.1)').replace('rgb', 'rgba'),
+            borderWidth: 2,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: color,
+            pointRadius: 5,
+            fill: true,
+            tension: 0.2,
+            spanGaps: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: { padding: { top: 10, bottom: 0, left: 0, right: 10 } },
+          scales: {
+            y: {
+              min: 0.5, max: yMax, reverse: true,
+              ticks: { stepSize: 1, callback: function(val) { if (val < 1 || val === yMax + 0.5) return ""; return Math.floor(val); } },
+            },
+            x: {
+              grid: { display: false },
+              ticks: { autoSkip: true, maxTicksLimit: 6 }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: { displayColors: false }
+          }
+        }
+      });
+    }
+
+    function getTableHTML(categoryList) {
+      var isMockExam = categoryList.some(c => c.category === "등급");
+      
+      var html = '<table>';
+      html += '<tbody>';
+      
+      if (categoryList && categoryList.length > 0) {
+        for (var k = 0; k < categoryList.length; k++) {
+          var category = categoryList[k].category; 
+          var items = categoryList[k].items;        
+          var categoryScore = ""; 
+          var displayItems = []; 
+          
+          for (var i = 0; i < items.length; i++) {
+            var itemName = items[i].item;
+            if (category === "종합" && itemName === "등급") { continue; }
+            if (itemName.replace(/\s/g, "") === "합계") { categoryScore = items[i].score; } 
+            else { displayItems.push(items[i]); }
+          }
+          
+          if (displayItems.length === 0 && categoryScore === "") { continue; }
+          
+          if (!isMockExam) {
+             var bgClass = 'bg-default';
+             if (category.indexOf('고사') > -1 || category.indexOf('시험') > -1) bgClass = 'bg-exam';
+             else if (category.indexOf('수행') > -1) bgClass = 'bg-perform';
+             html += '<tr class="category-row ' + bgClass + '">';
+             html += '  <td>' + category + '</td>';
+             html += '  <td style="text-align:center;">' + categoryScore + '</td>'; 
+             html += '</tr>';
+          }
+          
+          for (var i = 0; i < displayItems.length; i++) {
+            var itemName = displayItems[i].item;
+            var itemScore = displayItems[i].score;
+            var scoreStyle = "";
+            
+            var normalized = normalizeSubjectName(itemName);
+            var isTarget = ['국어','수학','영어'].includes(normalized);
+            var iconHtml = "";
+
+            if (isMockExam && isTarget) {
+               iconHtml = '<span class="trend-badge" onclick="showTrendGraph(\'' + itemName + '\')">' +
+                          '<svg class="trend-svg" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>' +
+                          '</span>';
+            }
+            
+            if (itemName.indexOf("객관식") > -1 || itemName.indexOf("주관식") > -1) {
+               scoreStyle = 'style="font-weight: normal; color: #888; font-size:13px;"'; 
+            }
+            
+            html += '<tr class="item-row">';
+            
+            // [수정됨] 모의고사 디자인: gap 15px로 간격 넓힘
+            if (isMockExam) {
+                html += '  <td colspan="2" style="text-align: left; padding: 12px 15px;">';
+                html += '    <div style="display:flex; align-items:center; gap: 15px;">';
+                html += '      <span style="font-weight:bold; color:#333;">' + itemName + '</span>'; 
+                html += '      <span class="grade-badge">' + itemScore + '등급</span>'; 
+                html += '      ' + iconHtml; 
+                html += '    </div>';
+                html += '  </td>';
+            } else {
+                html += '  <td><span>' + itemName + '</span>' + iconHtml + '</td>';
+                html += '  <td ' + scoreStyle + '>' + itemScore + '</td>';
+            }
+            
+            html += '</tr>';
+          }
+        }
+      } else { 
+          html += '<tr><td colspan="2" style="text-align:center; padding: 20px;">결과 없음</td></tr>'; 
+      }
+      
+      html += '</tbody></table>';
+      return html;
+    }
+
+    function resetAll() { location.href = location.href; }
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => console.log('SW Fail'));
+    }
+  </script>
 </body>
 </html>
