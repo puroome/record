@@ -133,7 +133,7 @@
     .logout-svg { width: 18px; height: 18px; fill: #888; transition: fill 0.2s; }
     .logout-btn:hover .logout-svg { fill: #4285F4; }
 
-    /* 탭 및 아코디언 스타일 (생략 - 기존 유지) */
+    /* 탭 및 아코디언 스타일 */
     .tab-header { display: flex; justify-content: center; background: white; border-radius: 12px; padding: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; font-size: 15px; font-weight: bold; color: #777; cursor: pointer; border-radius: 8px; transition: 0.2s; }
     .tab-btn.active { background-color: #e8f0fe; color: #4285F4; }
@@ -157,7 +157,7 @@
     .semester-arrow::after { content: '▼'; font-size: 12px; float: right; transform: rotate(0deg); transition: 0.2s; color: #1b5e20; }
     .semester-btn.active .semester-arrow::after { transform: rotate(180deg); }
     
-    /* 테이블 스타일 (생략 - 기존 유지) */
+    /* 테이블 스타일 */
     table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; margin-top: 5px; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #eee; }
     th, td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
     thead tr { background-color: #f8f9fa; color: #555; font-size: 13px; }
@@ -170,7 +170,7 @@
     .item-row td:nth-child(2) { text-align: center; font-weight: bold; color: #333; }
     .item-row:last-child td { border-bottom: none; }
 
-    /* 모달 스타일 (기존 유지) */
+    /* 모달 스타일 */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
     .modal-box { background: white; padding: 25px; border-radius: 16px; width: 85%; max-width: 360px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); animation: popIn 0.2s; position: relative; }
     .modal-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 8px; }
@@ -185,9 +185,7 @@
     .close-icon { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 24px; color: #ccc; line-height: 1; z-index: 10; padding: 5px; }
     .close-icon:hover { color: #333; }
 
-    /* =========================================
-       [신규] 사진 갤러리(Grid) 스타일
-       ========================================= */
+    /* 갤러리 스타일 */
     .gallery-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -202,13 +200,13 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       text-align: center;
       transition: transform 0.2s;
-      cursor: pointer; /* 클릭 가능 표시 */
+      cursor: pointer;
     }
     .photo-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.12); }
 
     .photo-frame {
       width: 100%;
-      aspect-ratio: 3 / 4; /* 증명사진 비율 */
+      aspect-ratio: 3 / 4; 
       background-color: #f0f0f0;
       position: relative;
       overflow: hidden;
@@ -229,7 +227,6 @@
     .photo-name { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 2px; }
     .photo-id { font-size: 13px; color: #888; }
     
-    /* 갤러리 상단 뒤로가기 바 */
     .gallery-header {
       display: flex; justify-content: space-between; align-items: center;
       padding: 10px 20px 20px 20px;
@@ -334,8 +331,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // [보안 수정] 하드코딩된 MASTER_PW 제거됨
-
     var currentId = "";
     var currentName = "";
     var globalScoreData = null; 
@@ -345,7 +340,7 @@
     var serverVersion = 0; 
     var galleryMatches = []; 
     
-    // [보안 수정 완료] 소스 코드에서 키 값 완전 제거 (임의의 로딩중 값으로 설정)
+    // [보안 완료] 소스 코드에서 키 값 완전 제거 (임의의 로딩중 값으로 설정)
     var adminTriggerKey = "WAIT_FOR_DB_LOADING"; 
     var photoTriggerKey = "WAIT_FOR_DB_LOADING";
 
@@ -393,7 +388,7 @@
       db.ref('info').once('value').then(function(snapshot) {
         if (snapshot.exists()) {
           var info = snapshot.val();
-          var sVer = info.version;          
+          var sVer = info.version;           
           var sDate = info.lastUpdated;  
           
           // [보안 수정] DB에서 키 값 불러와서 덮어쓰기
@@ -500,7 +495,7 @@
 
         var searchPromise;
         
-        // 1. 와일드카드 검색 (?) (기존 유지)
+        // 1. 와일드카드 검색 (?)
         if (rawVal.includes("?")) {
             searchPromise = db.ref('students').once('value').then(function(snapshot) {
                 if (!snapshot.exists()) return [];
@@ -517,7 +512,7 @@
                 return matches;
             });
         }
-        // 3. 일반 학번 검색 (숫자) (기존 유지)
+        // 3. 일반 학번 검색 (숫자)
         else if (/^\d+$/.test(rawVal)) {
              searchPromise = db.ref('students/' + rawVal).once('value').then(function(snapshot) {
                 if (snapshot.exists()) {
@@ -526,7 +521,7 @@
                 return [];
              });
         } 
-        // 4. 이름 검색 (기존 유지)
+        // 4. 이름 검색
         else {
              searchPromise = db.ref('students').orderByChild('name').equalTo(rawVal).once('value').then(function(snapshot) {
                 var matches = [];
@@ -642,6 +637,10 @@
         }
     }
 
+    /* =========================================
+       [보안 수정] 비밀번호 우회 문자열 제거 및 로직 변경 (완료된 부분)
+       ========================================= */
+
     function proceedWithSelection(studentObj, isAdmin) {
         currentId = studentObj.id;
         currentName = studentObj.name;
@@ -656,10 +655,11 @@
         }
 
         document.getElementById('step1').style.display = 'none';
-        document.getElementById('step3-gallery').style.display = 'none'; // 갤러리에서 넘어왔을 경우 숨김
+        document.getElementById('step3-gallery').style.display = 'none'; 
 
         if (isAdmin) {
-            loadScoreAndShow("##ADMIN_FREE_PASS##");
+            // [수정] 이상한 텍스트 대신, 두 번째 파라미터로 true(관리자임)를 전달
+            loadScoreAndShow(null, true);
         } else {
             var storedPw = fetchedStudentData.pw ? String(fetchedStudentData.pw).trim() : "";
             if (storedPw !== "") {
@@ -690,7 +690,8 @@
               fetchedStudentData.pw = pw1;
               localStorage.setItem('cached_student_data', JSON.stringify(fetchedStudentData));
            }
-           showAlert("설정 완료", "비밀번호가 설정되었습니다.<br>성적을 조회합니다.", function() { loadScoreAndShow(pw1); });
+           // [수정] 비밀번호 설정 후에는 관리자 모드 아님(false)
+           showAlert("설정 완료", "비밀번호가 설정되었습니다.<br>성적을 조회합니다.", function() { loadScoreAndShow(pw1, false); });
         }).catch(function(err) { showAlert("오류", "시스템 오류가 발생했습니다."); });
       });
     }
@@ -698,32 +699,42 @@
     function processLogin() {
       var pw = document.getElementById('loginPw').value;
       if (!pw) { showAlert("입력 오류", "비밀번호를 입력하세요."); return; }
-      loadScoreAndShow(pw);
+      // [수정] 로그인 시에는 관리자 모드 아님(false)
+      loadScoreAndShow(pw, false);
     }
 
-    function loadScoreAndShow(pw) {
+    // [수정] isAdminMode 파라미터 추가
+    function loadScoreAndShow(pw, isAdminMode) {
       if (!fetchedStudentData) {
          db.ref('students/' + currentId).once('value').then(function(snap){
             if(snap.exists()) {
                fetchedStudentData = snap.val();
                fetchedStudentData.key = currentId; 
                localStorage.setItem('cached_student_data', JSON.stringify(fetchedStudentData));
-               verifyAndRender(pw);
+               // 데이터 로드 후 검증 함수 호출
+               verifyAndRender(pw, isAdminMode);
             } else {
                showAlert("오류", "데이터를 찾을 수 없습니다.");
                resetAll();
             }
          });
-      } else { verifyAndRender(pw); }
+      } else { 
+          // 데이터가 이미 있으면 바로 검증 함수 호출
+          verifyAndRender(pw, isAdminMode); 
+      }
     }
 
-    function verifyAndRender(pw) {
-       // [보안 수정] MASTER_PW 비교 구문 삭제됨
-       var isMaster = (String(pw) === "##ADMIN_FREE_PASS##");
+    // [수정] 핵심 로직 변경
+    function verifyAndRender(pw, isAdminMode) {
+       // 1. 저장된 비밀번호 가져오기
        var storedPw = fetchedStudentData.pw ? String(fetchedStudentData.pw).trim() : "";
+       // 2. 입력한 비밀번호가 맞는지 확인
        var pwMatch = (storedPw === String(pw).trim());
 
-       if (pwMatch || isMaster) {
+       // [보안 완료] isAdminMode 변수가 true이거나, 비밀번호가 맞을 때만 보여줌
+       // 이제 문자열("##ADMIN_FREE_PASS##") 비교 로직은 사라졌습니다.
+       if (isAdminMode === true || (pw && pwMatch)) {
+         
          document.getElementById('mainContainer').classList.add('result-mode');
          document.querySelectorAll('.step-area').forEach(el => el.style.display = 'none');
          document.getElementById('mainTitle').style.display = 'none';
