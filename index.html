@@ -185,7 +185,7 @@
     .close-icon { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 24px; color: #ccc; line-height: 1; z-index: 10; padding: 5px; }
     .close-icon:hover { color: #333; }
 
-    /* 갤러리 스타일 */
+    /* 갤러리 스타일 (기본) */
     .gallery-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -193,6 +193,29 @@
       padding: 10px;
     }
     
+    /* 갤러리 스타일 (1명일 때 중앙 정렬 및 확대) */
+    .gallery-single-view {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start; /* 상단 기준 정렬 */
+      padding: 30px 10px;
+    }
+    
+    .gallery-single-view .photo-card {
+      /* 기존 그리드(min 140px) 대비 약 1.5배~2배 느낌으로 설정 */
+      width: 240px; 
+      max-width: 80%; /* 모바일 화면 넘어감 방지 */
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15); /* 강조를 위해 그림자 강화 */
+    }
+    
+    .gallery-single-view .photo-frame {
+      aspect-ratio: 3 / 4; 
+    }
+    
+    .gallery-single-view .photo-name { font-size: 20px; margin-top: 10px; margin-bottom: 5px; }
+    .gallery-single-view .photo-id { font-size: 15px; margin-bottom: 10px; }
+
+    /* 공통 카드 스타일 */
     .photo-card {
       background: white;
       border-radius: 12px;
@@ -388,7 +411,7 @@
       db.ref('info').once('value').then(function(snapshot) {
         if (snapshot.exists()) {
           var info = snapshot.val();
-          var sVer = info.version;           
+          var sVer = info.version;            
           var sDate = info.lastUpdated;  
           
           // [보안 수정] DB에서 키 값 불러와서 덮어쓰기
@@ -559,7 +582,7 @@
     }
 
     /* =========================================
-       [수정] 사진 갤러리 표시 함수 (클릭 이벤트 추가)
+       [수정] 사진 갤러리 표시 함수 (1명일 때 중앙 정렬 & 확대 로직 추가)
        ========================================= */
     function showPhotoGallery(matches) {
         galleryMatches = matches; // 클릭 처리를 위해 전역 변수에 저장
@@ -584,23 +607,23 @@
         html += '  </div>';
         html += '</div>';
 
-        // 그리드 영역
-        html += '<div class="gallery-grid">';
+        // [핵심 로직 변경] 결과가 1명이냐 여러 명이냐에 따라 컨테이너 클래스 분기
+        var containerClass = (matches.length === 1) ? 'gallery-single-view' : 'gallery-grid';
+        
+        html += '<div class="' + containerClass + '">';
         
         matches.forEach(function(m, index) {
             var photoUrl = m.data.photo || ""; // Firebase에 저장된 URL
             
-            // [수정] onclick 이벤트 추가: 클릭 시 onPhotoClick(index) 호출
+            // onclick 이벤트: 클릭 시 onPhotoClick(index) 호출
             html += '<div class="photo-card" onclick="onPhotoClick(' + index + ')">';
             
             // 사진 프레임
             html += '  <div class="photo-frame">';
             if (photoUrl) {
                 html += '    <img src="' + photoUrl + '" class="photo-img" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">';
-                // 이미지 로드 실패 시 보여줄 대체 아이콘 (숨겨져 있다가 onerror시 표시)
                 html += '    <div class="photo-placeholder" style="display:none;">👤</div>';
             } else {
-                // URL 자체가 없을 때
                 html += '    <div class="photo-placeholder">👤</div>';
             }
             html += '  </div>';
@@ -614,7 +637,7 @@
             html += '</div>'; // card end
         });
 
-        html += '</div>'; // grid end
+        html += '</div>'; // grid/single-view end
         
         galleryArea.innerHTML = html;
     }
