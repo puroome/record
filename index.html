@@ -90,12 +90,48 @@
     .result-info-bar {
         display: flex;
         justify-content: space-between;
-        align-items: flex-end;
-        padding: 0 5px 10px 5px;
+        align-items: center; /* 아이콘 위치 조정을 위해 center로 변경 */
+        padding: 0 5px 15px 5px; /* 하단 패딩 살짝 증가 */
     }
-    .student-name { font-size: 24px; font-weight: 800; color: #4285F4; margin-right: 8px; }
-    .student-id { font-size: 18px; font-weight: 300; color: #777; }
-    .logout-text { font-size: 13px; color: #999; cursor: pointer; text-decoration: underline; }
+    
+    /* [수정] 이름과 학번 스타일 */
+    .student-info-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .student-name { font-size: 24px; font-weight: 800; color: #4285F4; }
+    /* [수정] 학번 폰트 크기 이름과 동일하게 변경 */
+    .student-id { font-size: 24px; font-weight: 300; color: #777; }
+
+    /* [수정] 로그아웃 버튼 (원형 아이콘 + 3D 효과) */
+    .logout-btn { 
+      width: 38px; height: 38px;
+      background-color: white;
+      border-radius: 50%;
+      display: flex; justify-content: center; align-items: center;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      border: 1px solid #eee;
+      transition: all 0.2s ease;
+    }
+    
+    /* 3D 후버 효과 */
+    .logout-btn:hover {
+      transform: translateY(-3px) scale(1.05); /* 위로 떠오르며 살짝 커짐 */
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15); /* 그림자 깊이감 추가 */
+      background-color: #fff;
+      border-color: #dceefc;
+    }
+
+    .logout-svg {
+      width: 18px; height: 18px;
+      fill: #888;
+      transition: fill 0.2s;
+    }
+    .logout-btn:hover .logout-svg {
+      fill: #4285F4; /* 호버 시 아이콘 색상 변경 */
+    }
 
     /* 탭(Tab) 스타일 */
     .tab-header {
@@ -640,15 +676,19 @@
          var stickyContainer = document.createElement('div');
          stickyContainer.className = 'sticky-header-group';
 
-         // 1. 학생 정보 헤더 (이름 학번)
+         // [수정] 학생 정보 및 로그아웃 버튼 헤더
          var infoBar = document.createElement('div');
          infoBar.className = 'result-info-bar';
+         
+         // 아이콘 SVG (로그아웃 도어 아이콘)
+         var logoutIconSvg = '<svg class="logout-svg" viewBox="0 0 24 24"><path d="M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 012 2v2h-2V4H5v16h9v-2h2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V4a2 2 0 012-2h9z"></path></svg>';
+         
          infoBar.innerHTML = 
-            '<div>' +
+            '<div class="student-info-group">' +
               '<span class="student-name">' + currentName + '</span>' +
               '<span class="student-id">' + currentId + '</span>' +
             '</div>' +
-            '<div class="logout-text" onclick="resetAll()">로그아웃</div>';
+            '<div class="logout-btn" onclick="resetAll()" title="로그아웃">' + logoutIconSvg + '</div>';
          
          stickyContainer.appendChild(infoBar);
          
