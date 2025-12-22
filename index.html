@@ -33,19 +33,28 @@
       transition: max-width 0.3s;
     }
     
-    /* 결과 화면 모드 */
+    /* 결과 화면 모드 (성적표) */
     .container.result-mode {
       background: transparent;
       box-shadow: none;
-      padding: 0; /* 결과 화면에서는 패딩 제거 (꽉 차게) */
+      padding: 0; 
       max-width: 600px; 
-      margin-top: 0; /* 상단 여백 제거하여 고정 효과 극대화 */
+      margin-top: 0; 
+    }
+
+    /* 갤러리 모드 컨테이너 (더 넓게) */
+    .container.gallery-mode {
+      background: transparent;
+      box-shadow: none;
+      padding: 0;
+      max-width: 800px; /* 사진을 위해 폭을 넓힘 */
+      margin-top: 0;
     }
 
     h2 { color: #333; margin-bottom: 25px; }
     p { color: #666; font-size: 14px; margin-bottom: 15px; }
 
-    /* 메인 헤더 (로그인/검색 화면용) */
+    /* 메인 헤더 */
     .header-bar {
       display: flex;
       justify-content: space-between;
@@ -71,35 +80,29 @@
     .btn { width: 100%; padding: 14px; background-color: #4285F4; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
     .btn:hover { background-color: #3367d6; }
     .btn:disabled { background-color: #ccc; cursor: not-allowed; } 
-    .btn-secondary { background-color: #fff; color: #555; border: 1px solid #ddd; margin-top: 30px; }
     
     .step-area { display: none; }
     #step1 { display: block; } 
 
-    /* =========================================
-       [수정] 상단 고정 영역 (Sticky Header)
-       업데이트 정보 + 이름 + 탭을 모두 포함하는 컨테이너
-       ========================================= */
+    /* 상단 고정 영역 (성적표용) */
     .sticky-header-group {
       position: sticky;
       top: 0;
       z-index: 100;
       background-color: #f4f6f8; 
-      padding-top: 0; /* 상단 여백 제거 */
+      padding-top: 0; 
       padding-bottom: 10px;
       margin-bottom: 10px;
       margin-top: -20px;
     }
 
-    /* [신규] 결과 화면 상단 정보 바 (날짜/개발자) */
     .result-top-info {
         display: flex;
         justify-content: space-between;
-        padding: 15px 5px 5px 5px; /* 상단 패딩 확보 */
+        padding: 15px 5px 5px 5px; 
         margin-bottom: 5px;
     }
 
-    /* 결과 화면 학생 정보 바 */
     .result-info-bar {
         display: flex;
         justify-content: space-between;
@@ -107,16 +110,10 @@
         padding: 0 5px 15px 5px;
     }
     
-    /* 이름과 학번 스타일 */
-    .student-info-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .student-info-group { display: flex; align-items: center; gap: 10px; }
     .student-name { font-size: 24px; font-weight: 800; color: #4285F4; }
     .student-id { font-size: 24px; font-weight: 300; color: #777; }
 
-    /* 로그아웃 버튼 */
     .logout-btn { 
       width: 38px; height: 38px;
       background-color: white;
@@ -133,177 +130,116 @@
       background-color: #fff;
       border-color: #dceefc;
     }
-    .logout-svg {
-      width: 18px; height: 18px;
-      fill: #888;
-      transition: fill 0.2s;
-    }
+    .logout-svg { width: 18px; height: 18px; fill: #888; transition: fill 0.2s; }
     .logout-btn:hover .logout-svg { fill: #4285F4; }
 
-    /* 탭(Tab) 스타일 */
-    .tab-header {
-      display: flex;
-      justify-content: center;
-      background: white;
-      border-radius: 12px;
-      padding: 5px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .tab-btn {
-      flex: 1; padding: 12px; border: none; background: transparent;
-      font-size: 15px; font-weight: bold; color: #777; cursor: pointer;
-      border-radius: 8px; transition: 0.2s;
-    }
+    /* 탭 및 아코디언 스타일 (생략 - 기존 유지) */
+    .tab-header { display: flex; justify-content: center; background: white; border-radius: 12px; padding: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; font-size: 15px; font-weight: bold; color: #777; cursor: pointer; border-radius: 8px; transition: 0.2s; }
     .tab-btn.active { background-color: #e8f0fe; color: #4285F4; }
     .tab-content { display: none; animation: fadeIn 0.3s; padding-bottom: 40px;}
     .tab-content.active { display: block; }
-
-    /* 학기(Semester) 아코디언 스타일 */
-    .semester-wrapper {
-        margin-bottom: 15px;
-        background: white;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-
-    .semester-btn {
-        width: 100%;
-        padding: 15px 20px;
-        background-color: #e6f4ea; 
-        color: #1b5e20;
-        font-size: 16px;
-        font-weight: bold;
-        text-align: left;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        outline: none;
-    }
-    .semester-btn:hover { background-color: #dceed0; }
-    
-    .semester-panel {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease-out;
-        background: white;
-    }
-    .semester-panel.open {
-        max-height: none; 
-        padding-bottom: 10px;
-    }
-
-    /* 과목 아코디언 버튼 */
-    .accordion-btn {
-      background-color: #fff; color: #333; cursor: pointer; padding: 16px 20px; width: 100%; text-align: left;
-      border: none; border-bottom: 1px solid #f4f6f8; outline: none; font-size: 15px;
-      transition: 0.2s; display: flex; justify-content: space-between; align-items: center;
-    }
-    .accordion-btn:hover { background-color: #fafafa; }
-    .accordion-btn:last-child { border-bottom: none; }
+    .semester-wrapper { margin-bottom: 15px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .semester-btn { width: 100%; padding: 15px 20px; background-color: #e6f4ea; color: #1b5e20; font-size: 16px; font-weight: bold; text-align: left; border: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; outline: none; }
+    .semester-panel { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: white; }
+    .semester-panel.open { max-height: none; padding-bottom: 10px; }
+    .accordion-btn { background-color: #fff; color: #333; cursor: pointer; padding: 16px 20px; width: 100%; text-align: left; border: none; border-bottom: 1px solid #f4f6f8; outline: none; font-size: 15px; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
     .accordion-btn.active { background-color: #f8fbff; color: #1967d2; font-weight: bold; border-bottom: 1px solid #e1eaf9; }
-    
-    .accordion-header-group { 
-        display: flex; 
-        align-items: center; 
-        gap: 15px; 
-        flex: 1;
-        overflow: hidden;
-    }
-    .subject-name { 
-        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; 
-        margin-right: 2px;
-    }
-
-    /* 등급 뱃지 스타일 */
-    .grade-badge {
-      background-color: #e8f0fe; color: #1967d2;              
-      padding: 4px 10px; border-radius: 12px;         
-      font-size: 13px; font-weight: bold; 
-      white-space: nowrap;
-      min-width: 35px; text-align: center;
-    }
-    .accordion-btn.active .grade-badge { background-color: #fff; border: 1px solid #d2e3fc; }
-
-    /* 트렌드 아이콘 */
-    .trend-badge {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 24px; height: 24px;
-      background-color: #ffefee; 
-      border-radius: 50%;         
-      cursor: pointer; 
-      transition: 0.2s;
-      margin-left: 2px;
-    }
-    .trend-badge:hover { transform: scale(1.1); background-color: #ffdce0; }
-
-    .trend-svg {
-      width: 14px; height: 14px;
-      stroke: #ff5252;
-      stroke-width: 2.5;
-      fill: none;
-      stroke-linecap: round; stroke-linejoin: round;
-      pointer-events: none; 
-    }
-
-    /* 패널 (내용) */
-    .panel {
-      padding: 0; background-color: #fff; max-height: 0; overflow: hidden; transition: max-height 0.2s ease-out; 
-    }
+    .accordion-header-group { display: flex; align-items: center; gap: 15px; flex: 1; overflow: hidden; }
+    .subject-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 2px; }
+    .grade-badge { background-color: #e8f0fe; color: #1967d2; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: bold; white-space: nowrap; min-width: 35px; text-align: center; }
+    .trend-badge { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background-color: #ffefee; border-radius: 50%; cursor: pointer; transition: 0.2s; margin-left: 2px; }
+    .trend-svg { width: 14px; height: 14px; stroke: #ff5252; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+    .panel { padding: 0; background-color: #fff; max-height: 0; overflow: hidden; transition: max-height 0.2s ease-out; }
     .panel-content { padding: 10px 15px 20px 15px; background-color: #fcfcfc; border-bottom: 1px solid #eee; }
-    
     .arrow::after { content: '▼'; font-size: 10px; float: right; transform: rotate(-90deg); transition: 0.2s; color: #ccc; margin-left: 10px; }
     .active .arrow::after { transform: rotate(0deg); color: #1967d2; }
     .semester-arrow::after { content: '▼'; font-size: 12px; float: right; transform: rotate(0deg); transition: 0.2s; color: #1b5e20; }
     .semester-btn.active .semester-arrow::after { transform: rotate(180deg); }
-
-    /* 테이블 스타일 */
+    
+    /* 테이블 스타일 (생략 - 기존 유지) */
     table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; margin-top: 5px; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #eee; }
     th, td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
     thead tr { background-color: #f8f9fa; color: #555; font-size: 13px; }
-    
     th:nth-child(1), td:nth-child(1) { text-align: left; width: 90%; padding-left: 15px; }
     th:nth-child(2), td:nth-child(2) { text-align: center; width: 10%; }
-    
-    .category-row td { 
-      font-weight: bold; font-size: 14px; color: #333; text-align: left; padding-left: 15px; background-color: #fdfdfd; border-top: 1px solid #eee;
-    }
+    .category-row td { font-weight: bold; font-size: 14px; color: #333; text-align: left; padding-left: 15px; background-color: #fdfdfd; border-top: 1px solid #eee; }
     .bg-exam { border-left: 3px solid #81c995; } 
     .bg-perform { border-left: 3px solid #f28b82; } 
-    
     .item-row td:nth-child(1) { padding-left: 25px; color: #666; text-align: left; }
     .item-row td:nth-child(2) { text-align: center; font-weight: bold; color: #333; }
     .item-row:last-child td { border-bottom: none; }
 
-    /* 모달 공통 */
+    /* 모달 스타일 (기존 유지) */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
     .modal-box { background: white; padding: 25px; border-radius: 16px; width: 85%; max-width: 360px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); animation: popIn 0.2s; position: relative; }
     .modal-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 8px; }
     .modal-msg { font-size: 15px; color: #555; line-height: 1.5; word-break: keep-all; margin-bottom: 20px; }
-    
     .modal-btn-group { display: flex; gap: 10px; }
     .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.1s; }
     .modal-btn.confirm { background-color: #4285F4; color: white; }
     .modal-btn.cancel { background-color: #f1f3f4; color: #555; }
     
-    /* 동명이인 선택 버튼 */
-    .option-btn {
-      background-color: #fff; color: #333; padding: 15px;
-      border: 1px solid #eee; border-radius: 10px; width: 100%;
-      font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 8px;
-      transition: 0.2s; text-align: left; display: flex; justify-content: space-between;
-    }
+    .option-btn { background-color: #fff; color: #333; padding: 15px; border: 1px solid #eee; border-radius: 10px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 8px; transition: 0.2s; text-align: left; display: flex; justify-content: space-between; }
     .option-btn:hover { background-color: #f8fbff; border-color: #4285F4; color: #1967d2; }
-    
-    .close-icon { 
-        position: absolute; top: 15px; right: 15px; 
-        cursor: pointer; font-size: 24px; color: #ccc; line-height: 1; 
-        z-index: 10; padding: 5px; 
-    }
+    .close-icon { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 24px; color: #ccc; line-height: 1; z-index: 10; padding: 5px; }
     .close-icon:hover { color: #333; }
+
+    /* =========================================
+       [신규] 사진 갤러리(Grid) 스타일
+       ========================================= */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 15px;
+      padding: 10px;
+    }
     
+    .photo-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      text-align: center;
+      transition: transform 0.2s;
+      cursor: pointer; /* 클릭 가능 표시 */
+    }
+    .photo-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.12); }
+
+    .photo-frame {
+      width: 100%;
+      aspect-ratio: 3 / 4; /* 증명사진 비율 */
+      background-color: #f0f0f0;
+      position: relative;
+      overflow: hidden;
+    }
+    .photo-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .photo-placeholder {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      color: #ccc; font-size: 40px;
+    }
+
+    .photo-info { padding: 10px; }
+    .photo-name { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 2px; }
+    .photo-id { font-size: 13px; color: #888; }
+    
+    /* 갤러리 상단 뒤로가기 바 */
+    .gallery-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 20px 20px 20px;
+    }
+    .btn-back-search {
+      padding: 8px 16px; background: #fff; border: 1px solid #ddd;
+      border-radius: 20px; font-size: 14px; font-weight: bold; color: #555; cursor: pointer;
+    }
+    .btn-back-search:hover { background: #f5f5f5; }
+
     @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   </style>
@@ -342,8 +278,9 @@
       <button onclick="processLogin()" class="btn">성적 확인하기</button>
     </div>
 
-    <div id="step3-result" class="step-area">
-      </div>
+    <div id="step3-result" class="step-area"></div>
+    
+    <div id="step3-gallery" class="step-area"></div>
 
   </div>
 
@@ -371,7 +308,7 @@
 
   <script>
     /* =========================================
-       1. Helper functions (Modal Close fix)
+       1. Helper functions
        ========================================= */
     function closeGraphModal() { 
         document.getElementById('graphModal').style.display = 'none'; 
@@ -405,6 +342,7 @@
     var fetchedStudentData = null; 
     var myChart = null; 
     var serverVersion = 0; 
+    var galleryMatches = []; // 갤러리 클릭 이벤트를 위해 검색 결과 저장
 
     document.addEventListener('contextmenu', function(event) { event.preventDefault(); });
 
@@ -416,8 +354,10 @@
     window.onpopstate = function(event) {
         document.querySelectorAll('.step-area').forEach(el => el.style.display = 'none');
         document.getElementById('step3-result').style.display = 'none';
+        document.getElementById('step3-gallery').style.display = 'none'; // 갤러리 숨김 추가
         document.getElementById('mainHeaderBar').style.display = 'flex';
         document.getElementById('mainContainer').classList.remove('result-mode'); 
+        document.getElementById('mainContainer').classList.remove('gallery-mode'); // 갤러리 모드 제거
 
         var showMainTitle = true;
         if (event.state && event.state.step) {
@@ -426,6 +366,11 @@
                 document.getElementById('step3-result').style.display = 'block';
                 document.getElementById('mainHeaderBar').style.display = 'none';
                 document.getElementById('mainContainer').classList.add('result-mode');
+                showMainTitle = false;
+            } else if (target === 'step3-gallery') {
+                document.getElementById('step3-gallery').style.display = 'block';
+                document.getElementById('mainHeaderBar').style.display = 'none';
+                document.getElementById('mainContainer').classList.add('gallery-mode');
                 showMainTitle = false;
             } else if (target === 'step2-login' || target === 'step2-register') {
                 document.getElementById(target).style.display = 'block';
@@ -443,7 +388,7 @@
       db.ref('info').once('value').then(function(snapshot) {
         if (snapshot.exists()) {
           var info = snapshot.val();
-          var sVer = info.version;        
+          var sVer = info.version;         
           var sDate = info.lastUpdated;  
           document.getElementById('lastUpdatedDisplay').innerText = "Update: " + sDate;
           
@@ -514,24 +459,34 @@
     }
 
     /* =========================================
-       4. 검색 및 인증 로직
+       4. 검색 및 인증 로직 (수정됨)
        ========================================= */
     function processSearch() {
         var inputEl = document.getElementById('inputSearch');
         var rawVal = inputEl.value.trim();
         if (!rawVal) { showAlert("입력 오류", "학번 또는 이름을 입력해주세요."); return; }
 
+        // [사진 검색 모드 체크 ('p' 또는 'P'로 시작)]
+        var isPhotoMode = false;
+        if (rawVal.toLowerCase().startsWith('p')) {
+            isPhotoMode = true;
+            rawVal = rawVal.substring(1).trim(); // 맨 앞 'p' 제거
+        }
+
         var isAdmin = false;
         if (rawVal.startsWith("@")) {
             isAdmin = true;
             rawVal = rawVal.substring(1).trim(); 
         }
+
         if (!rawVal) return;
 
         var btn = document.getElementById('btnStep1');
         btn.innerHTML = "조회 중..."; btn.disabled = true;
 
         var searchPromise;
+        
+        // 1. 와일드카드 검색 (?) (기존 유지)
         if (rawVal.includes("?")) {
             searchPromise = db.ref('students').once('value').then(function(snapshot) {
                 if (!snapshot.exists()) return [];
@@ -548,6 +503,7 @@
                 return matches;
             });
         }
+        // 3. 일반 학번 검색 (숫자) (기존 유지)
         else if (/^\d+$/.test(rawVal)) {
              searchPromise = db.ref('students/' + rawVal).once('value').then(function(snapshot) {
                 if (snapshot.exists()) {
@@ -556,6 +512,7 @@
                 return [];
              });
         } 
+        // 4. 이름 검색 (기존 유지)
         else {
              searchPromise = db.ref('students').orderByChild('name').equalTo(rawVal).once('value').then(function(snapshot) {
                 var matches = [];
@@ -570,19 +527,101 @@
 
         searchPromise.then(function(matches) {
             btn.innerHTML = "조회하기"; btn.disabled = false;
-            handleSearchResults(matches, isAdmin);
-        }).catch(function() {
+            
+            // 학번 순 정렬
+            matches.sort(function(a, b) { return parseInt(a.id) - parseInt(b.id); });
+
+            if (matches.length === 0) {
+                showAlert("알림", "일치하는 학생 정보가 없습니다.");
+            } else {
+                if (isPhotoMode) {
+                    // 사진 갤러리 모드로 이동
+                    showPhotoGallery(matches);
+                } else {
+                    // 기존 성적 조회 로직
+                    handleSearchResults(matches, isAdmin);
+                }
+            }
+        }).catch(function(err) {
+            console.error(err);
             btn.innerHTML = "조회하기"; btn.disabled = false;
             showAlert("오류", "데이터를 불러오는 중 문제가 발생했습니다.");
         });
     }
 
-    function handleSearchResults(matches, isAdmin) {
-        matches.sort(function(a, b) { return parseInt(a.id) - parseInt(b.id); });
+    /* =========================================
+       [수정] 사진 갤러리 표시 함수 (클릭 이벤트 추가)
+       ========================================= */
+    function showPhotoGallery(matches) {
+        galleryMatches = matches; // 클릭 처리를 위해 전역 변수에 저장
 
-        if (matches.length === 0) {
-            showAlert("알림", "일치하는 학생 정보가 없습니다.");
-        } else if (matches.length === 1) {
+        document.getElementById('mainContainer').classList.add('gallery-mode');
+        document.querySelectorAll('.step-area').forEach(el => el.style.display = 'none');
+        document.getElementById('mainTitle').style.display = 'none';
+        document.getElementById('mainHeaderBar').style.display = 'none';
+
+        var galleryArea = document.getElementById('step3-gallery');
+        galleryArea.style.display = 'block';
+        history.pushState({ step: 'step3-gallery' }, 'gallery', '');
+
+        // 갤러리 HTML 구성
+        var html = '';
+        
+        // 상단 헤더 (뒤로가기 + 타이틀)
+        html += '<div class="sticky-header-group">';
+        html += '  <div class="gallery-header">';
+        html += '    <button class="btn-back-search" onclick="resetAll()">← 검색으로</button>';
+        html += '    <div style="font-weight:bold; color:#4285F4; font-size:16px;">검색 결과: ' + matches.length + '명</div>';
+        html += '  </div>';
+        html += '</div>';
+
+        // 그리드 영역
+        html += '<div class="gallery-grid">';
+        
+        matches.forEach(function(m, index) {
+            var photoUrl = m.data.photo || ""; // Firebase에 저장된 URL
+            
+            // [수정] onclick 이벤트 추가: 클릭 시 onPhotoClick(index) 호출
+            html += '<div class="photo-card" onclick="onPhotoClick(' + index + ')">';
+            
+            // 사진 프레임
+            html += '  <div class="photo-frame">';
+            if (photoUrl) {
+                html += '    <img src="' + photoUrl + '" class="photo-img" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">';
+                // 이미지 로드 실패 시 보여줄 대체 아이콘 (숨겨져 있다가 onerror시 표시)
+                html += '    <div class="photo-placeholder" style="display:none;">👤</div>';
+            } else {
+                // URL 자체가 없을 때
+                html += '    <div class="photo-placeholder">👤</div>';
+            }
+            html += '  </div>';
+
+            // 정보 영역
+            html += '  <div class="photo-info">';
+            html += '    <div class="photo-name">' + m.name + '</div>';
+            html += '    <div class="photo-id">' + m.id + '</div>';
+            html += '  </div>';
+            
+            html += '</div>'; // card end
+        });
+
+        html += '</div>'; // grid end
+        
+        galleryArea.innerHTML = html;
+    }
+
+    // [신규] 갤러리 사진 클릭 핸들러
+    function onPhotoClick(index) {
+        var selectedStudent = galleryMatches[index];
+        if (selectedStudent) {
+            // 프리패스 모드 (isAdmin=true)로 성적 조회 화면 이동
+            proceedWithSelection(selectedStudent, true);
+        }
+    }
+
+    // 기존 성적 조회 핸들러 (유지)
+    function handleSearchResults(matches, isAdmin) {
+        if (matches.length === 1) {
             proceedWithSelection(matches[0], isAdmin);
         } else {
             showSelectionList(matches, isAdmin);
@@ -603,6 +642,7 @@
         }
 
         document.getElementById('step1').style.display = 'none';
+        document.getElementById('step3-gallery').style.display = 'none'; // 갤러리에서 넘어왔을 경우 숨김
 
         if (isAdmin) {
             loadScoreAndShow("##ADMIN_FREE_PASS##");
@@ -678,26 +718,22 @@
          history.pushState({ step: 'step3' }, 'result', '');
          globalScoreData = fetchedStudentData.scores || [];
          
-         // [수정] 1. Sticky Header Container 생성 (전체 고정 틀)
          var stickyContainer = document.createElement('div');
          stickyContainer.className = 'sticky-header-group';
 
-         // [신규] 2. 결과 화면 상단 정보 바 (업데이트날짜 & 제작자) 추가
          var topInfoBar = document.createElement('div');
          topInfoBar.className = 'result-top-info';
          
-         var dateText = document.getElementById('lastUpdatedDisplay').innerText; // 메인 화면 값 가져오기
+         var dateText = document.getElementById('lastUpdatedDisplay').innerText; 
          topInfoBar.innerHTML = 
             '<div class="last-updated">' + dateText + '</div>' +
             '<div class="developer-brand">ⓒ JEONGKAPSU</div>';
          
          stickyContainer.appendChild(topInfoBar);
 
-         // 3. 학생 정보 및 로그아웃 버튼 헤더
          var infoBar = document.createElement('div');
          infoBar.className = 'result-info-bar';
          
-         // 아이콘 SVG (로그아웃 도어 아이콘)
          var logoutIconSvg = '<svg class="logout-svg" viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"></path></svg>';
          
          infoBar.innerHTML = 
@@ -709,16 +745,13 @@
          
          stickyContainer.appendChild(infoBar);
          
-         // 4. 탭 영역 (renderAccordionTree 내부에서 추가할 것임)
          var tabContainer = document.createElement('div');
          tabContainer.id = 'tabContainerArea';
          stickyContainer.appendChild(tabContainer);
 
-         // stickyContainer를 먼저 결과 영역에 추가
          document.getElementById('step3-result').innerHTML = '';
          document.getElementById('step3-result').appendChild(stickyContainer);
 
-         // 5. 컨텐츠 영역
          var contentArea = document.createElement('div');
          contentArea.id = 'resultContentArea';
          document.getElementById('step3-result').appendChild(contentArea);
@@ -741,7 +774,6 @@
         return;
       }
 
-      // 탭 헤더 생성
       var tabNav = document.createElement('div');
       tabNav.className = 'tab-header';
       
@@ -758,26 +790,21 @@
         };
         tabNav.appendChild(tabBtn);
 
-        // 학년별 컨텐츠 영역
         var gradeContentDiv = document.createElement('div');
         gradeContentDiv.id = 'grade-content-' + index;
         gradeContentDiv.className = 'tab-content';
         if (index === 0) gradeContentDiv.classList.add('active');
 
-        // 학기 순회
         if (gradeNode.semesters) {
            gradeNode.semesters.forEach(function(semNode) {
-              // 학기 Wrapper (아코디언 구조)
               var semWrapper = document.createElement('div');
               semWrapper.className = 'semester-wrapper';
 
-              // 학기 이름 정리
               var cleanSemName = semNode.name.replace('[학기]', '').replace('학기', '').trim();
               if(cleanSemName === "1" || cleanSemName === "2") cleanSemName += "학기";
               else if(cleanSemName.indexOf("모의") > -1) cleanSemName = "모의고사";
               else cleanSemName = semNode.name.replace('[학기]', '').trim();
 
-              // 학기 버튼
               var semBtn = document.createElement('button');
               semBtn.className = 'semester-btn';
               semBtn.innerHTML = '<span>' + cleanSemName + '</span><span class="semester-arrow"></span>';
@@ -790,7 +817,6 @@
                   semPanel.classList.toggle('open');
               };
 
-              // 과목 리스트
               if (semNode.subjects) {
                  semNode.subjects.forEach(function(subNode) {
                     var gradeText = "";
@@ -802,7 +828,6 @@
                        }
                     }
 
-                    // 왼쪽 그룹: 이름 + 등급 + 아이콘
                     var leftHtml = '<div class="accordion-header-group">';
                     leftHtml += '<span class="subject-name">' + subNode.name + '</span>';
                     
@@ -849,7 +874,6 @@
         contentContainer.appendChild(gradeContentDiv);
       });
 
-      // 탭바를 Sticky 영역에 붙이기
       tabTargetDiv.appendChild(tabNav);
     }
 
@@ -903,8 +927,8 @@
                     if (subNode.items) {
                        var totalCat = subNode.items.find(c => c.category === "종합");
                        if (totalCat) {
-                         var gradeItem = totalCat.items.find(i => i.item === "등급");
-                         if (gradeItem && !isNaN(parseFloat(gradeItem.score))) return true; 
+                          var gradeItem = totalCat.items.find(i => i.item === "등급");
+                          if (gradeItem && !isNaN(parseFloat(gradeItem.score))) return true; 
                        }
                     }
                  }
@@ -916,7 +940,6 @@
        return false;
     }
 
-    // HEX to RGBA Helper
     function hexToRgba(hex, alpha) {
         var r = parseInt(hex.slice(1, 3), 16);
         var g = parseInt(hex.slice(3, 5), 16);
@@ -924,7 +947,6 @@
         return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
     }
 
-    // 내신 그래프
     function showInternalTrendGraph(targetSubject) {
       var trendDataMap = {}; 
       var hasCommonSubject = false; 
@@ -969,13 +991,11 @@
       document.getElementById('graphTitle').innerText = targetSubject + " (내신) 등급 추이";
       document.getElementById('graphModal').style.display = 'flex';
 
-      // X축 라벨 생성 로직 수정: 1학기에만 학년 표시
       var displayLabels = fixedSlots.map(s => {
-          var parts = s.split('-'); // ["1", "1"]
+          var parts = s.split('-'); 
           if (parts[1] === "1") return parts[0] + "학년";
-          return ""; // 2학기는 빈칸
+          return ""; 
       });
-      // 툴팁용 전체 라벨
       var fullLabels = fixedSlots.map(s => {
           var parts = s.split('-');
           return parts[0] + "학년 " + parts[1] + "학기";
@@ -984,7 +1004,6 @@
       renderChart(displayLabels, fullLabels, scores, yMax, '#34a853');
     }
 
-    // 모의고사 그래프
     function showTrendGraph(subjectName) {
       var targetSubject = normalizeSubjectName(subjectName);
       if (!['국어', '수학', '영어'].includes(targetSubject)) return;
@@ -1019,7 +1038,6 @@
 
       trendData.sort((a, b) => a.sortKey - b.sortKey);
       
-      // X축 라벨 생성 로직 수정: 학년이 처음 나올 때만 표시
       var lastGrade = -1;
       var displayLabels = trendData.map(d => {
           if (d.grade !== lastGrade) {
@@ -1028,7 +1046,6 @@
           }
           return "";
       });
-      // 툴팁용 전체 라벨
       var fullLabels = trendData.map(d => d.grade + "학년 " + d.month + "월");
       var scores = trendData.map(d => d.score);
 
@@ -1037,12 +1054,10 @@
       renderChart(displayLabels, fullLabels, scores, 9, '#4285F4');
     }
 
-    // 차트 렌더링 함수 수정
     function renderChart(labels, fullLabels, data, yMax, color) {
       var ctx = document.getElementById('trendChart').getContext('2d');
       if (myChart) myChart.destroy(); 
 
-      // 투명도 적용
       var bgColor = hexToRgba(color, 0.3);
 
       myChart = new Chart(ctx, {
@@ -1053,7 +1068,7 @@
             label: '등급',
             data: data,
             borderColor: color,
-            backgroundColor: bgColor, // 50% 투명
+            backgroundColor: bgColor, 
             borderWidth: 2,
             pointBackgroundColor: '#fff',
             pointBorderColor: color,
@@ -1074,7 +1089,7 @@
             },
             x: {
               grid: { display: false },
-              ticks: { autoSkip: false } // 모든 라벨 렌더링 (빈칸 포함)
+              ticks: { autoSkip: false } 
             }
           },
           plugins: {
@@ -1083,11 +1098,9 @@
                 displayColors: false,
                 callbacks: {
                     title: function(context) {
-                        // 툴팁 제목에는 전체 시기 정보 표시 (빈칸 X)
                         return fullLabels[context[0].dataIndex];
                     },
                     label: function(context) {
-                        // 등급 수치 표시 제거 (빈 문자열 반환)
                         return '';
                     }
                 }
