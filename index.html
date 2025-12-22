@@ -33,7 +33,7 @@
       transition: max-width 0.3s;
     }
     
-    /* 결과 화면 모드 (배경 투명, 그림자 제거) */
+    /* 결과 화면 모드 */
     .container.result-mode {
       background: transparent;
       box-shadow: none;
@@ -44,7 +44,7 @@
     h2 { color: #333; margin-bottom: 25px; }
     p { color: #666; font-size: 14px; margin-bottom: 15px; }
 
-    /* 메인 헤더 (로그인 전) */
+    /* 메인 헤더 */
     .header-bar {
       display: flex;
       justify-content: space-between;
@@ -75,18 +75,18 @@
     .step-area { display: none; }
     #step1 { display: block; } 
 
-    /* --- [수정됨] 상단 고정 영역 (이름 + 탭) --- */
+    /* 상단 고정 영역 (이름 + 탭) */
     .sticky-header-group {
       position: sticky;
       top: 0;
       z-index: 100;
-      background-color: #f4f6f8; /* 배경색을 body와 맞춰서 자연스럽게 */
+      background-color: #f4f6f8; 
       padding-top: 10px;
       padding-bottom: 10px;
       margin-bottom: 10px;
     }
 
-    /* 결과 화면 상단 정보 (이름/학번) */
+    /* 결과 화면 상단 정보 */
     .result-info-bar {
         display: flex;
         justify-content: space-between;
@@ -94,7 +94,7 @@
         padding: 0 5px 10px 5px;
     }
     .student-name { font-size: 24px; font-weight: 800; color: #4285F4; margin-right: 8px; }
-    .student-id { font-size: 18px; font-weight: 300; color: #777; } /* 폰트 얇게 */
+    .student-id { font-size: 18px; font-weight: 300; color: #777; }
     .logout-text { font-size: 13px; color: #999; cursor: pointer; text-decoration: underline; }
 
     /* 탭(Tab) 스타일 */
@@ -115,7 +115,7 @@
     .tab-content { display: none; animation: fadeIn 0.3s; padding-bottom: 40px;}
     .tab-content.active { display: block; }
 
-    /* --- [수정됨] 학기(Semester) 아코디언 스타일 --- */
+    /* 학기(Semester) 아코디언 스타일 */
     .semester-wrapper {
         margin-bottom: 15px;
         background: white;
@@ -127,7 +127,7 @@
     .semester-btn {
         width: 100%;
         padding: 15px 20px;
-        background-color: #e6f4ea; /* 옅은 녹색 배경 */
+        background-color: #e6f4ea; 
         color: #1b5e20;
         font-size: 16px;
         font-weight: bold;
@@ -148,7 +148,7 @@
         background: white;
     }
     .semester-panel.open {
-        max-height: none; /* 내용이 다 보이도록 */
+        max-height: none; 
         padding-bottom: 10px;
     }
 
@@ -162,11 +162,11 @@
     .accordion-btn:last-child { border-bottom: none; }
     .accordion-btn.active { background-color: #f8fbff; color: #1967d2; font-weight: bold; border-bottom: 1px solid #e1eaf9; }
     
-    /* [수정됨] 과목명 옆에 등급, 아이콘 배치 */
+    /* 과목명 옆에 등급, 아이콘 배치 */
     .accordion-header-group { 
         display: flex; 
         align-items: center; 
-        gap: 8px; /* 간격 */
+        gap: 8px; 
         flex: 1;
         overflow: hidden;
     }
@@ -175,31 +175,32 @@
         margin-right: 2px;
     }
 
-    /* 등급 뱃지 */
+    /* [롤백됨] 등급 뱃지 스타일 (연한 파랑 배경) */
     .grade-badge {
       background-color: #e8f0fe; color: #1967d2;              
-      padding: 3px 8px; border-radius: 6px;         
-      font-size: 12px; font-weight: 800;
+      padding: 4px 10px; border-radius: 12px;         
+      font-size: 13px; font-weight: 800;
       white-space: nowrap;
       min-width: 35px; text-align: center;
     }
     .accordion-btn.active .grade-badge { background-color: #fff; border: 1px solid #d2e3fc; }
 
-    /* [수정됨] 트렌드 아이콘 (빨간 네모 스타일 복구) */
+    /* [롤백됨] 트렌드 아이콘 (연한 핑크 배경 + 붉은 선) */
     .trend-badge {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 20px; height: 20px;
-      background-color: rgba(255, 77, 79, 0.8); /* 빨간색 반투명 */
-      border-radius: 5px;           
+      width: 24px; height: 24px;
+      background-color: #ffefee; /* 연한 핑크 */
+      border-radius: 50%; /* 원형 */          
       cursor: pointer; 
       transition: 0.2s;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      margin-left: 2px;
     }
-    .trend-badge:hover { transform: scale(1.1); background-color: #ff4d4f; }
+    .trend-badge:hover { transform: scale(1.1); background-color: #ffdce0; }
 
     .trend-svg {
-      width: 12px; height: 12px;
-      stroke: white; stroke-width: 2;
+      width: 14px; height: 14px;
+      stroke: #ff5252; /* 붉은색 선 */
+      stroke-width: 2.5;
       fill: none;
       stroke-linecap: round; stroke-linejoin: round;
       pointer-events: none; 
@@ -254,7 +255,13 @@
     }
     .option-btn:hover { background-color: #f8fbff; border-color: #4285F4; color: #1967d2; }
     
-    .close-icon { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 24px; color: #ccc; line-height: 1; }
+    /* [수정됨] 닫기 아이콘 우선순위 강화 */
+    .close-icon { 
+        position: absolute; top: 15px; right: 15px; 
+        cursor: pointer; font-size: 24px; color: #ccc; line-height: 1; 
+        z-index: 10; padding: 5px; /* 터치 영역 확보 */
+    }
+    .close-icon:hover { color: #333; }
     
     @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -323,7 +330,19 @@
 
   <script>
     /* =========================================
-       1. Firebase & 초기 설정
+       1. Helper functions (Modal Close fix)
+       ========================================= */
+    // [수정됨] 모달 닫기 함수를 최상단에 선언하여 어디서든 접근 가능하게 함
+    function closeGraphModal() { 
+        document.getElementById('graphModal').style.display = 'none'; 
+    }
+    
+    function closeModal() { 
+        document.getElementById('customModal').style.display = 'none'; 
+    }
+
+    /* =========================================
+       2. Firebase & 초기 설정
        ========================================= */
     const firebaseConfig = {
       apiKey: "AIzaSyDzAYguXSjmjNJFEYPplLKUj_twhOO0Llk",
@@ -403,7 +422,7 @@
     }
 
     /* =========================================
-       2. UI / Modal 로직
+       3. UI / Modal 로직
        ========================================= */
     function showAlert(title, msg, callback) {
       resetModalState(); 
@@ -454,10 +473,8 @@
       document.getElementById('modalBtnConfirm').onclick = function() { if (onModalConfirm) onModalConfirm(); else closeModal(); };
     }
 
-    function closeModal() { document.getElementById('customModal').style.display = 'none'; }
-
     /* =========================================
-       3. 검색 및 인증 로직
+       4. 검색 및 인증 로직
        ========================================= */
     function processSearch() {
         var inputEl = document.getElementById('inputSearch');
@@ -637,7 +654,7 @@
          
          stickyContainer.appendChild(infoBar);
          
-         // 2. 탭 영역 (renderAccordionTree 내부에서 추가할 것임, 여기선 미리 영역만 잡음)
+         // 2. 탭 영역 (renderAccordionTree 내부에서 추가할 것임)
          var tabContainer = document.createElement('div');
          tabContainer.id = 'tabContainerArea';
          stickyContainer.appendChild(tabContainer);
@@ -660,7 +677,7 @@
     }
 
     /* =========================================
-       4. 렌더링 로직 (Tab + Semester Accordion)
+       5. 렌더링 로직 (Tab + Semester Accordion)
        ========================================= */
     function renderAccordionTree(data, contentContainer, tabTargetDiv) {
       if (!data || data.length === 0) {
@@ -676,7 +693,7 @@
         var tabBtn = document.createElement('button');
         tabBtn.className = 'tab-btn';
         if (index === 0) tabBtn.classList.add('active');
-        tabBtn.innerText = gradeNode.name; // "1학년", "2학년"
+        tabBtn.innerText = gradeNode.name; 
         tabBtn.onclick = function() {
            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
            this.classList.add('active');
@@ -698,9 +715,9 @@
               var semWrapper = document.createElement('div');
               semWrapper.className = 'semester-wrapper';
 
-              // 학기 이름 정리 ("[학기]" 제거)
+              // 학기 이름 정리
               var cleanSemName = semNode.name.replace('[학기]', '').replace('학기', '').trim();
-              if(cleanSemName === "1" || cleanSemName === "2") cleanSemName += "학기"; // "1" -> "1학기"
+              if(cleanSemName === "1" || cleanSemName === "2") cleanSemName += "학기";
               else if(cleanSemName.indexOf("모의") > -1) cleanSemName = "모의고사";
               else cleanSemName = semNode.name.replace('[학기]', '').trim();
 
@@ -729,7 +746,7 @@
                        }
                     }
 
-                    // [수정됨] 왼쪽 그룹: 이름 + 등급 + 아이콘
+                    // 왼쪽 그룹: 이름 + 등급 + 아이콘
                     var leftHtml = '<div class="accordion-header-group">';
                     leftHtml += '<span class="subject-name">' + subNode.name + '</span>';
                     
@@ -739,9 +756,9 @@
 
                     var normSubject = normalizeInternalSubjectName(subNode.name);
                     if (normSubject && hasInternalHistory(normSubject)) { 
-                        // 빨간 네모 아이콘
+                        // [롤백됨] 연한 배경 아이콘 + 붉은 선 아이콘
                         leftHtml += '<span class="trend-badge" onclick="event.stopPropagation(); showInternalTrendGraph(\'' + normSubject + '\')">' +
-                                    '<svg class="trend-svg" viewBox="0 0 24 24"><path d="M4 4 L4 20 L20 20" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><polyline points="7 16 11 12 15 14 19 8" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+                                    '<svg class="trend-svg" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>' +
                                     '</span>';
                     }
                     leftHtml += '</div>';
@@ -791,7 +808,7 @@
     }
 
     /* =========================================
-       5. 데이터 처리 및 그래프 헬퍼 함수
+       6. 데이터 처리 및 그래프 헬퍼 함수
        ========================================= */
     function normalizeSubjectName(name) {
       if(!name) return "";
@@ -1021,9 +1038,9 @@
             var iconHtml = "";
 
             if (isMockExam && isTarget) {
-               // [수정] 모의고사 트렌드 아이콘도 빨간 네모 스타일 적용
+               // [롤백됨] 모의고사 트렌드 아이콘
                iconHtml = '<span class="trend-badge" onclick="showTrendGraph(\'' + itemName + '\')">' +
-                          '<svg class="trend-svg" viewBox="0 0 24 24"><path d="M4 4 L4 20 L20 20" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><polyline points="7 16 11 12 15 14 19 8" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+                          '<svg class="trend-svg" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>' +
                           '</span>';
             }
             if (itemName.indexOf("객관식") > -1 || itemName.indexOf("주관식") > -1) {
