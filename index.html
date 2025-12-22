@@ -345,9 +345,9 @@
     var serverVersion = 0; 
     var galleryMatches = []; 
     
-    // [보안 수정] Firebase에서 불러올 기본 키값 (로딩 실패 대비 기본값)
-    var adminTriggerKey = "@"; 
-    var photoTriggerKey = "p";
+    // [보안 수정 완료] 소스 코드에서 키 값 완전 제거 (임의의 로딩중 값으로 설정)
+    var adminTriggerKey = "WAIT_FOR_DB_LOADING"; 
+    var photoTriggerKey = "WAIT_FOR_DB_LOADING";
 
     document.addEventListener('contextmenu', function(event) { event.preventDefault(); });
 
@@ -396,7 +396,7 @@
           var sVer = info.version;          
           var sDate = info.lastUpdated;  
           
-          // [보안 수정] DB에서 키 값 불러오기
+          // [보안 수정] DB에서 키 값 불러와서 덮어쓰기
           if (info.adminKey) adminTriggerKey = info.adminKey;
           if (info.photoKey) photoTriggerKey = info.photoKey;
 
@@ -478,6 +478,7 @@
 
         // [보안 수정] DB에서 가져온 키값으로 사진 모드 체크
         var isPhotoMode = false;
+        // adminTriggerKey, photoTriggerKey가 로딩되지 않았으면 기본값(WAIT_FOR_DB...)이라 절대 매칭 안됨
         if (rawVal.startsWith(photoTriggerKey)) {
             isPhotoMode = true;
             // 키의 길이만큼 잘라냄
