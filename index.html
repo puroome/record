@@ -333,6 +333,8 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    
+    // [보안 수정] 하드코딩된 MASTER_PW 제거됨
 
     var currentId = "";
     var currentName = "";
@@ -341,7 +343,11 @@
     var fetchedStudentData = null; 
     var myChart = null; 
     var serverVersion = 0; 
-    var galleryMatches = []; // 갤러리 클릭 이벤트를 위해 검색 결과 저장
+    var galleryMatches = []; 
+    
+    // [보안 수정] Firebase에서 불러올 기본 키값 (로딩 실패 대비 기본값)
+    var adminTriggerKey = "@"; 
+    var photoTriggerKey = "p";
 
     document.addEventListener('contextmenu', function(event) { event.preventDefault(); });
 
@@ -353,10 +359,10 @@
     window.onpopstate = function(event) {
         document.querySelectorAll('.step-area').forEach(el => el.style.display = 'none');
         document.getElementById('step3-result').style.display = 'none';
-        document.getElementById('step3-gallery').style.display = 'none'; // 갤러리 숨김 추가
+        document.getElementById('step3-gallery').style.display = 'none'; 
         document.getElementById('mainHeaderBar').style.display = 'flex';
         document.getElementById('mainContainer').classList.remove('result-mode'); 
-        document.getElementById('mainContainer').classList.remove('gallery-mode'); // 갤러리 모드 제거
+        document.getElementById('mainContainer').classList.remove('gallery-mode'); 
 
         var showMainTitle = true;
         if (event.state && event.state.step) {
@@ -387,8 +393,13 @@
       db.ref('info').once('value').then(function(snapshot) {
         if (snapshot.exists()) {
           var info = snapshot.val();
-          var sVer = info.version;         
+          var sVer = info.version;          
           var sDate = info.lastUpdated;  
+          
+          // [보안 수정] DB에서 키 값 불러오기
+          if (info.adminKey) adminTriggerKey = info.adminKey;
+          if (info.photoKey) photoTriggerKey = info.photoKey;
+
           document.getElementById('lastUpdatedDisplay').innerText = "Update: " + sDate;
           
           var localVer = localStorage.getItem('cached_version');
@@ -458,24 +469,27 @@
     }
 
     /* =========================================
-       4. 검색 및 인증 로직 (수정됨)
+       4. 검색 및 인증 로직 (보안 강화됨)
        ========================================= */
     function processSearch() {
         var inputEl = document.getElementById('inputSearch');
         var rawVal = inputEl.value.trim();
         if (!rawVal) { showAlert("입력 오류", "학번 또는 이름을 입력해주세요."); return; }
 
-        // [사진 검색 모드 체크 ('p' 또는 'P'로 시작)]
+        // [보안 수정] DB에서 가져온 키값으로 사진 모드 체크
         var isPhotoMode = false;
-        if (rawVal.toLowerCase().startsWith('p')) {
+        if (rawVal.startsWith(photoTriggerKey)) {
             isPhotoMode = true;
-            rawVal = rawVal.substring(1).trim(); // 맨 앞 'p' 제거
+            // 키의 길이만큼 잘라냄
+            rawVal = rawVal.substring(photoTriggerKey.length).trim(); 
         }
 
         var isAdmin = false;
-        if (rawVal.startsWith("@")) {
+        // [보안 수정] DB에서 가져온 키값으로 관리자 모드 체크
+        if (rawVal.startsWith(adminTriggerKey)) {
             isAdmin = true;
-            rawVal = rawVal.substring(1).trim(); 
+            // 키의 길이만큼 잘라냄
+            rawVal = rawVal.substring(adminTriggerKey.length).trim(); 
         }
 
         if (!rawVal) return;
@@ -702,9 +716,9 @@
       } else { verifyAndRender(pw); }
     }
 
-function verifyAndRender(pw) {
-       
-       var isMaster = (String(pw) === "##ADMIN_FREE_PASS##"); 
+    function verifyAndRender(pw) {
+       // [보안 수정] MASTER_PW 비교 구문 삭제됨
+       var isMaster = (String(pw) === "##ADMIN_FREE_PASS##");
        var storedPw = fetchedStudentData.pw ? String(fetchedStudentData.pw).trim() : "";
        var pwMatch = (storedPw === String(pw).trim());
 
@@ -1133,13 +1147,13 @@ function verifyAndRender(pw) {
           if (displayItems.length === 0 && categoryScore === "") { continue; }
           
           if (!isMockExam) {
-             var bgClass = 'bg-default';
-             if (category.indexOf('고사') > -1 || category.indexOf('시험') > -1) bgClass = 'bg-exam';
-             else if (category.indexOf('수행') > -1) bgClass = 'bg-perform';
-             html += '<tr class="category-row ' + bgClass + '">';
-             html += '  <td>' + category + '</td>';
-             html += '  <td style="text-align:center;">' + categoryScore + '</td>'; 
-             html += '</tr>';
+              var bgClass = 'bg-default';
+              if (category.indexOf('고사') > -1 || category.indexOf('시험') > -1) bgClass = 'bg-exam';
+              else if (category.indexOf('수행') > -1) bgClass = 'bg-perform';
+              html += '<tr class="category-row ' + bgClass + '">';
+              html += '  <td>' + category + '</td>';
+              html += '  <td style="text-align:center;">' + categoryScore + '</td>'; 
+              html += '</tr>';
           }
           
           for (var i = 0; i < displayItems.length; i++) {
