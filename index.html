@@ -997,10 +997,18 @@
     }
 
     function getTableHTML(categoryList) {
+      // 모의고사 여부 확인 (카테고리가 '등급'인 항목이 있는지)
       var isMockExam = categoryList.some(c => c.category === "등급");
+      
       var html = '<table>';
       
-      if (isMockExam) { html += '<thead><tr><th>과목</th><th>등급</th></tr></thead>'; }
+      // [수정 1] 모의고사일 경우 헤더(<thead>) 제거
+      // 기존에는 isMockExam일 때 thead를 추가했으나, 이제는 생략합니다.
+      if (!isMockExam) {
+         // 내신/수행평가 등 일반적인 경우엔 헤더가 없어도 되거나 필요한 경우 로직 추가
+         // 현재 구조상 일반 내신은 thead를 원래 안 썼으므로 그대로 둡니다.
+      }
+      
       html += '<tbody>';
       
       if (categoryList && categoryList.length > 0) {
@@ -1012,12 +1020,18 @@
           
           for (var i = 0; i < items.length; i++) {
             var itemName = items[i].item;
+            // 모의고사의 경우 '등급'이라는 카테고리 이름 자체는 출력하지 않음
             if (category === "종합" && itemName === "등급") { continue; }
+            
+            // 합계 점수는 따로 저장
             if (itemName.replace(/\s/g, "") === "합계") { categoryScore = items[i].score; } 
             else { displayItems.push(items[i]); }
           }
+          
+          // 표시할 아이템이 없고 합계도 없으면 건너뜀
           if (displayItems.length === 0 && categoryScore === "") { continue; }
           
+          // [내신 등 일반 시험] 카테고리(중간/기말/수행) 제목 줄 표시
           if (!isMockExam) {
              var bgClass = 'bg-default';
              if (category.indexOf('고사') > -1 || category.indexOf('시험') > -1) bgClass = 'bg-exam';
@@ -1028,6 +1042,7 @@
              html += '</tr>';
           }
           
+          // 아이템(과목 또는 세부항목) 반복 출력
           for (var i = 0; i < displayItems.length; i++) {
             var itemName = displayItems[i].item;
             var itemScore = displayItems[i].score;
@@ -1037,23 +1052,43 @@
             var isTarget = ['국어','수학','영어'].includes(normalized);
             var iconHtml = "";
 
+            // 그래프 아이콘 생성 (모의고사 & 국영수일 경우)
             if (isMockExam && isTarget) {
-               // [롤백됨] 모의고사 트렌드 아이콘
                iconHtml = '<span class="trend-badge" onclick="showTrendGraph(\'' + itemName + '\')">' +
                           '<svg class="trend-svg" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>' +
                           '</span>';
             }
+            
+            // 객관식/주관식 등 상세 항목 스타일
             if (itemName.indexOf("객관식") > -1 || itemName.indexOf("주관식") > -1) {
                scoreStyle = 'style="font-weight: normal; color: #888; font-size:13px;"'; 
             }
             
             html += '<tr class="item-row">';
-            html += '  <td><span>' + itemName + '</span>' + iconHtml + '</td>';
-            html += '  <td ' + scoreStyle + '>' + itemScore + '</td>';
+            
+            // [수정 2] 모의고사일 경우 디자인 변경
+            if (isMockExam) {
+                // 한 줄(colspan=2)로 합치고, 이름 옆에 뱃지 형태로 등급 표시
+                html += '  <td colspan="2" style="text-align: left; padding: 12px 15px;">';
+                html += '    <div style="display:flex; align-items:center;">';
+                html += '      <span style="font-weight:bold; color:#333; margin-right:6px;">' + itemName + '</span>'; // 과목명
+                html += '      <span class="grade-badge">' + itemScore + '등급</span>'; // 등급 뱃지
+                html += '      ' + iconHtml; // 그래프 아이콘 (있을 경우)
+                html += '    </div>';
+                html += '  </td>';
+            } else {
+                // 기존 방식 (내신 세부 점수 등): 이름과 점수를 양쪽으로 나눔
+                html += '  <td><span>' + itemName + '</span>' + iconHtml + '</td>';
+                html += '  <td ' + scoreStyle + '>' + itemScore + '</td>';
+            }
+            
             html += '</tr>';
           }
         }
-      } else { html += '<tr><td colspan="2" style="text-align:center; padding: 20px;">결과 없음</td></tr>'; }
+      } else { 
+          html += '<tr><td colspan="2" style="text-align:center; padding: 20px;">결과 없음</td></tr>'; 
+      }
+      
       html += '</tbody></table>';
       return html;
     }
