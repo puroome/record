@@ -37,14 +37,15 @@
     .container.result-mode {
       background: transparent;
       box-shadow: none;
-      padding: 0;
+      padding: 0; /* 결과 화면에서는 패딩 제거 (꽉 차게) */
       max-width: 600px; 
+      margin-top: 0; /* 상단 여백 제거하여 고정 효과 극대화 */
     }
 
     h2 { color: #333; margin-bottom: 25px; }
     p { color: #666; font-size: 14px; margin-bottom: 15px; }
 
-    /* 메인 헤더 */
+    /* 메인 헤더 (로그인/검색 화면용) */
     .header-bar {
       display: flex;
       justify-content: space-between;
@@ -75,36 +76,46 @@
     .step-area { display: none; }
     #step1 { display: block; } 
 
-    /* 상단 고정 영역 (이름 + 탭) */
+    /* =========================================
+       [수정] 상단 고정 영역 (Sticky Header)
+       업데이트 정보 + 이름 + 탭을 모두 포함하는 컨테이너
+       ========================================= */
     .sticky-header-group {
       position: sticky;
       top: 0;
       z-index: 100;
       background-color: #f4f6f8; 
-      padding-top: 10px;
+      padding-top: 0; /* 상단 여백 제거 */
       padding-bottom: 10px;
       margin-bottom: 10px;
     }
 
-    /* 결과 화면 상단 정보 */
+    /* [신규] 결과 화면 상단 정보 바 (날짜/개발자) */
+    .result-top-info {
+        display: flex;
+        justify-content: space-between;
+        padding: 15px 5px 5px 5px; /* 상단 패딩 확보 */
+        margin-bottom: 5px;
+    }
+
+    /* 결과 화면 학생 정보 바 */
     .result-info-bar {
         display: flex;
         justify-content: space-between;
-        align-items: center; /* 아이콘 위치 조정을 위해 center로 변경 */
-        padding: 0 5px 15px 5px; /* 하단 패딩 살짝 증가 */
+        align-items: center; 
+        padding: 0 5px 15px 5px;
     }
     
-    /* [수정] 이름과 학번 스타일 */
+    /* 이름과 학번 스타일 */
     .student-info-group {
       display: flex;
       align-items: center;
       gap: 10px;
     }
     .student-name { font-size: 24px; font-weight: 800; color: #4285F4; }
-    /* [수정] 학번 폰트 크기 이름과 동일하게 변경 */
     .student-id { font-size: 24px; font-weight: 300; color: #777; }
 
-    /* [수정] 로그아웃 버튼 (원형 아이콘 + 3D 효과) */
+    /* 로그아웃 버튼 */
     .logout-btn { 
       width: 38px; height: 38px;
       background-color: white;
@@ -115,23 +126,18 @@
       border: 1px solid #eee;
       transition: all 0.2s ease;
     }
-    
-    /* 3D 후버 효과 */
     .logout-btn:hover {
-      transform: translateY(-3px) scale(1.05); /* 위로 떠오르며 살짝 커짐 */
-      box-shadow: 0 6px 12px rgba(0,0,0,0.15); /* 그림자 깊이감 추가 */
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
       background-color: #fff;
       border-color: #dceefc;
     }
-
     .logout-svg {
       width: 18px; height: 18px;
       fill: #888;
       transition: fill 0.2s;
     }
-    .logout-btn:hover .logout-svg {
-      fill: #4285F4; /* 호버 시 아이콘 색상 변경 */
-    }
+    .logout-btn:hover .logout-svg { fill: #4285F4; }
 
     /* 탭(Tab) 스타일 */
     .tab-header {
@@ -198,7 +204,6 @@
     .accordion-btn:last-child { border-bottom: none; }
     .accordion-btn.active { background-color: #f8fbff; color: #1967d2; font-weight: bold; border-bottom: 1px solid #e1eaf9; }
     
-    /* 과목명 옆에 등급, 아이콘 배치 */
     .accordion-header-group { 
         display: flex; 
         align-items: center; 
@@ -672,11 +677,22 @@
          history.pushState({ step: 'step3' }, 'result', '');
          globalScoreData = fetchedStudentData.scores || [];
          
-         // Sticky Header Container 생성
+         // [수정] 1. Sticky Header Container 생성 (전체 고정 틀)
          var stickyContainer = document.createElement('div');
          stickyContainer.className = 'sticky-header-group';
 
-         // [수정] 학생 정보 및 로그아웃 버튼 헤더
+         // [신규] 2. 결과 화면 상단 정보 바 (업데이트날짜 & 제작자) 추가
+         var topInfoBar = document.createElement('div');
+         topInfoBar.className = 'result-top-info';
+         
+         var dateText = document.getElementById('lastUpdatedDisplay').innerText; // 메인 화면 값 가져오기
+         topInfoBar.innerHTML = 
+            '<div class="last-updated">' + dateText + '</div>' +
+            '<div class="developer-brand">ⓒ JEONGKAPSU</div>';
+         
+         stickyContainer.appendChild(topInfoBar);
+
+         // 3. 학생 정보 및 로그아웃 버튼 헤더
          var infoBar = document.createElement('div');
          infoBar.className = 'result-info-bar';
          
@@ -692,15 +708,16 @@
          
          stickyContainer.appendChild(infoBar);
          
-         // 2. 탭 영역 (renderAccordionTree 내부에서 추가할 것임)
+         // 4. 탭 영역 (renderAccordionTree 내부에서 추가할 것임)
          var tabContainer = document.createElement('div');
          tabContainer.id = 'tabContainerArea';
          stickyContainer.appendChild(tabContainer);
 
+         // stickyContainer를 먼저 결과 영역에 추가
          document.getElementById('step3-result').innerHTML = '';
          document.getElementById('step3-result').appendChild(stickyContainer);
 
-         // 3. 컨텐츠 영역
+         // 5. 컨텐츠 영역
          var contentArea = document.createElement('div');
          contentArea.id = 'resultContentArea';
          document.getElementById('step3-result').appendChild(contentArea);
