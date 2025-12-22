@@ -166,7 +166,7 @@
     .accordion-header-group { 
         display: flex; 
         align-items: center; 
-        gap: 15px; /* [수정됨] 간격 넓힘 */
+        gap: 15px; 
         flex: 1;
         overflow: hidden;
     }
@@ -179,7 +179,7 @@
     .grade-badge {
       background-color: #e8f0fe; color: #1967d2;              
       padding: 4px 10px; border-radius: 12px;         
-      font-size: 13px; font-weight: bold; /* [수정됨] 800 -> bold */
+      font-size: 13px; font-weight: bold; 
       white-space: nowrap;
       min-width: 35px; text-align: center;
     }
@@ -222,9 +222,9 @@
     th, td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
     thead tr { background-color: #f8f9fa; color: #555; font-size: 13px; }
     
-    /* [수정됨] 테이블 비율 8:2로 변경 */
-    th:nth-child(1) { text-align: left; width: 90%; padding-left: 15px; }
-    th:nth-child(2) { text-align: center; width: 10%; }
+    /* [수정됨] th뿐만 아니라 td에도 비율 적용 (90:10) */
+    th:nth-child(1), td:nth-child(1) { text-align: left; width: 90%; padding-left: 15px; }
+    th:nth-child(2), td:nth-child(2) { text-align: center; width: 10%; }
     
     .category-row td { 
       font-weight: bold; font-size: 14px; color: #333; text-align: left; padding-left: 15px; background-color: #fdfdfd; border-top: 1px solid #eee;
@@ -746,7 +746,6 @@
                     }
 
                     // 왼쪽 그룹: 이름 + 등급 + 아이콘
-                    // [수정됨] gap: 15px로 변경
                     var leftHtml = '<div class="accordion-header-group">';
                     leftHtml += '<span class="subject-name">' + subNode.name + '</span>';
                     
@@ -1048,7 +1047,6 @@
             
             html += '<tr class="item-row">';
             
-            // [수정됨] 모의고사 디자인: gap 15px로 간격 넓힘
             if (isMockExam) {
                 html += '  <td colspan="2" style="text-align: left; padding: 12px 15px;">';
                 html += '    <div style="display:flex; align-items:center; gap: 15px;">';
