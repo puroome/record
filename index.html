@@ -333,7 +333,6 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const MASTER_PW = "rhkdska25"; 
 
     var currentId = "";
     var currentName = "";
@@ -703,8 +702,9 @@
       } else { verifyAndRender(pw); }
     }
 
-    function verifyAndRender(pw) {
-       var isMaster = (String(pw).trim() === MASTER_PW || String(pw) === "##ADMIN_FREE_PASS##");
+function verifyAndRender(pw) {
+       
+       var isMaster = (String(pw) === "##ADMIN_FREE_PASS##"); 
        var storedPw = fetchedStudentData.pw ? String(fetchedStudentData.pw).trim() : "";
        var pwMatch = (storedPw === String(pw).trim());
 
