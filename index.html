@@ -6,7 +6,7 @@
   <title>광남고 성적 조회</title>
   <link rel="icon" href="favicon.png" type="image/png">
   <link rel="manifest" href="manifest.json">
-  
+   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -185,20 +185,25 @@
     .option-btn { background-color: #fff; color: #333; padding: 15px; border: 1px solid #eee; border-radius: 10px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 8px; transition: 0.2s; text-align: left; display: flex; justify-content: space-between; }
     .option-btn:hover { background-color: #f8fbff; border-color: #4285F4; color: #1967d2; }
     
-    /* [신규] 년도 선택 버튼 스타일 (길이 제한) */
+    /* [신규] 년도 선택 버튼 스타일 (완전 수정됨: align-self: center 추가) */
     .year-btn {
+      align-self: center; /* 부모가 늘리려고 해도 자기 크기 유지(중요!) */
       display: inline-block;
-      margin: 8px auto; 
+      width: auto; /* 내용물에 딱 맞게 */
+      
+      margin: 6px auto; 
       background-color: #fff; 
       color: #333; 
-      padding: 8px 12px; 
+      
+      /* 여백 축소 */
+      padding: 6px 12px; 
+      
       border: 1px solid #eee; 
       border-radius: 30px; 
       font-size: 16px; 
       font-weight: bold; 
       cursor: pointer; 
       transition: 0.2s;
-      width: auto;
       box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     .year-btn:hover {
