@@ -68,7 +68,9 @@
     .developer-brand, .last-updated {
       font-size: 11px; color: #b0b0b0; font-family: Roboto, sans-serif; cursor: default;
     }
-    .developer-brand { text-transform: uppercase; }
+    /* [수정] 개발자 브랜드 클릭 가능하게 변경 */
+    .developer-brand { text-transform: uppercase; cursor: pointer; transition: color 0.2s; }
+    .developer-brand:hover { color: #4285F4; }
     
     /* 입력창 공통 */
     input { 
@@ -182,6 +184,28 @@
     
     .option-btn { background-color: #fff; color: #333; padding: 15px; border: 1px solid #eee; border-radius: 10px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 8px; transition: 0.2s; text-align: left; display: flex; justify-content: space-between; }
     .option-btn:hover { background-color: #f8fbff; border-color: #4285F4; color: #1967d2; }
+    
+    /* [신규] 년도 선택 버튼 스타일 (길이 제한) */
+    .year-btn {
+      display: block; 
+      margin: 8px auto; 
+      background-color: #fff; 
+      color: #333; 
+      padding: 12px 20px; 
+      border: 1px solid #eee; 
+      border-radius: 30px; 
+      font-size: 16px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      transition: 0.2s;
+      min-width: 120px; /* 최소 너비 */
+      width: fit-content; /* 텍스트 길이에 맞춤 */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .year-btn:hover {
+      background-color: #4285F4; color: white; border-color: #4285F4;
+    }
+
     .close-icon { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 24px; color: #ccc; line-height: 1; z-index: 10; padding: 5px; }
     .close-icon:hover { color: #333; }
 
@@ -277,7 +301,7 @@
     
     <div id="mainHeaderBar" class="header-bar">
       <div id="lastUpdatedDisplay" class="last-updated"></div>
-      <div class="developer-brand">ⓒ JEONGKAPSU</div>
+      <div class="developer-brand" onclick="initGraduateMode()">ⓒ JEONGKAPSU</div>
     </div>
 
     <h2 id="mainTitle">광남고 성적 조회</h2>
@@ -366,7 +390,8 @@
     var fetchedStudentData = null; 
     var myChart = null; 
     var serverVersion = 0; 
-    var galleryMatches = []; 
+    var galleryMatches = [];
+    var isGraduateMode = false; // 졸업생 앨범 모드 확인 플래그
     
     // [보안 완료] 소스 코드에서 키 값 완전 제거 (임의의 로딩중 값으로 설정)
     var adminTriggerKey = "WAIT_FOR_DB_LOADING"; 
@@ -410,6 +435,7 @@
             document.getElementById('step1').style.display = 'block';
         }
         document.getElementById('mainTitle').style.display = showMainTitle ? 'block' : 'none';
+        isGraduateMode = false; // 뒤로가기 시 모드 초기화
     };
 
     function checkAppVersion() {
@@ -490,6 +516,76 @@
       document.getElementById('modalBtnGroup').style.display = 'flex';
       document.getElementById('modalBtnConfirm').onclick = function() { if (onModalConfirm) onModalConfirm(); else closeModal(); };
     }
+
+    /* =========================================
+       [신규] 졸업생 앨범 모드 로직
+       ========================================= */
+    function initGraduateMode() {
+        // 로딩 표시 등 필요하다면 추가
+        db.ref('graduates').once('value').then(function(snapshot) {
+            if (snapshot.exists()) {
+                var gradData = snapshot.val();
+                showYearSelectionModal(gradData);
+            } else {
+                showAlert("알림", "졸업생 데이터가 없습니다.");
+            }
+        }).catch(function(err) {
+            console.error(err);
+            showAlert("오류", "졸업생 데이터를 불러올 수 없습니다.");
+        });
+    }
+
+    function showYearSelectionModal(gradData) {
+        resetModalState();
+        document.getElementById('modalTitle').innerText = "졸업 앨범";
+        document.getElementById('modalMsg').innerHTML = "졸업 년도를 선택하세요.";
+        document.getElementById('modalBtnGroup').style.display = 'none';
+
+        var optContainer = document.getElementById('modalOptions');
+        optContainer.innerHTML = "";
+        optContainer.style.display = 'flex';
+        // 버튼들을 중앙 정렬하기 위해 스타일 조정
+        optContainer.style.alignItems = "center"; 
+
+        // 키(년도)를 내림차순 정렬 (최신순)
+        var years = Object.keys(gradData).sort().reverse();
+        
+        years.forEach(function(year) {
+            var btn = document.createElement('button');
+            btn.className = 'year-btn'; // 신규 스타일 클래스 사용
+            btn.innerText = year + "년";
+            btn.onclick = function() {
+                closeModal();
+                showGraduateGallery(year, gradData[year]);
+            };
+            optContainer.appendChild(btn);
+        });
+
+        document.getElementById('customModal').style.display = 'flex';
+    }
+
+    function showGraduateGallery(year, studentsList) {
+        isGraduateMode = true; // 플래그 설정
+        
+        // 년도 뒤 두자리 추출 (2025 -> 25)
+        var shortYear = year.length === 4 ? year.substring(2) : year;
+        var customTitle = shortYear + "년 졸업생: " + studentsList.length + "명";
+
+        // 기존 갤러리 로직이 'matches' 배열({data, name, id})을 기대하므로 변환
+        var formattedMatches = studentsList.map(function(s) {
+            return {
+                id: s.id,
+                name: s.name,
+                data: { photo: s.photo } // 성적 데이터 없음, 사진만 있음
+            };
+        });
+
+        // 학번 순 정렬
+        formattedMatches.sort(function(a, b) { return parseInt(a.id) - parseInt(b.id); });
+
+        showPhotoGallery(formattedMatches, customTitle);
+    }
+
 
     /* =========================================
        4. 검색 및 인증 로직 (보안 강화됨)
@@ -573,7 +669,7 @@
             } else {
                 if (isPhotoMode) {
                     // 사진 갤러리 모드로 이동
-                    showPhotoGallery(matches);
+                    showPhotoGallery(matches); // 기본 타이틀 사용
                 } else {
                     // 기존 성적 조회 로직
                     handleSearchResults(matches, isAdmin);
@@ -587,9 +683,9 @@
     }
 
     /* =========================================
-       [수정] 사진 갤러리 표시 함수 (1명일 때 중앙 정렬 & 확대 로직 추가)
+       [수정] 사진 갤러리 표시 함수 (커스텀 타이틀 지원 추가)
        ========================================= */
-    function showPhotoGallery(matches) {
+    function showPhotoGallery(matches, customTitle) {
         galleryMatches = matches; // 클릭 처리를 위해 전역 변수에 저장
 
         document.getElementById('mainContainer').classList.add('gallery-mode');
@@ -604,11 +700,14 @@
         // 갤러리 HTML 구성
         var html = '';
         
+        // 타이틀 결정 로직 (customTitle이 있으면 그것 사용, 없으면 검색 결과)
+        var titleText = customTitle ? customTitle : '검색 결과: ' + matches.length + '명';
+
         // 상단 헤더 (뒤로가기 + 타이틀)
         html += '<div class="sticky-header-group">';
         html += '  <div class="gallery-header">';
-        html += '    <button class="btn-back-search" onclick="resetAll()">← 검색으로</button>';
-        html += '    <div style="font-weight:bold; color:#4285F4; font-size:16px;">검색 결과: ' + matches.length + '명</div>';
+        html += '    <button class="btn-back-search" onclick="resetAll()">← 홈으로</button>';
+        html += '    <div style="font-weight:bold; color:#4285F4; font-size:16px;">' + titleText + '</div>';
         html += '  </div>';
         html += '</div>';
 
@@ -649,6 +748,9 @@
 
     // [신규] 갤러리 사진 클릭 핸들러
     function onPhotoClick(index) {
+        // 졸업생 모드인 경우 클릭 무시 (성적이 없으므로)
+        if (isGraduateMode) return;
+
         var selectedStudent = galleryMatches[index];
         if (selectedStudent) {
             // 프리패스 모드 (isAdmin=true)로 성적 조회 화면 이동
