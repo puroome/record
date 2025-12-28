@@ -503,10 +503,14 @@
     function showSelectionList(matches, isAdmin) {
       resetModalState();
       // [추가] 모달의 너비를 내용에 맞게 줄여주는 코드
-      document.getElementById('commonModalBox').classList.add('compact');
-      document.getElementById('modalTitle').innerText = "학생 선택";
-      document.getElementById('modalMsg').innerHTML = "아래 목록에서 선택하세요.";
-      document.getElementById('modalBtnGroup').style.display = 'none';
+document.getElementById('commonModalBox').classList.add('compact');
+document.getElementById('modalTitle').innerText = "학생 선택";
+
+// 기존 코드: document.getElementById('modalMsg').innerHTML = "아래 목록에서 선택하세요.";
+// 변경 코드: 아예 영역을 숨김
+document.getElementById('modalMsg').style.display = 'none'; 
+
+document.getElementById('modalBtnGroup').style.display = 'none';;
        
       var optContainer = document.getElementById('modalOptions');
       optContainer.innerHTML = ""; 
