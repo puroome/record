@@ -596,12 +596,15 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
         var shortYear = year.length === 4 ? year.substring(2) : year;
         var customTitle = shortYear + "년 졸업생: " + studentsList.length + "명";
 
-        // 기존 갤러리 로직이 'matches' 배열({data, name, id})을 기대하므로 변환
+// [수정] phone 데이터도 함께 넘기도록 추가
         var formattedMatches = studentsList.map(function(s) {
             return {
                 id: s.id,
                 name: s.name,
-                data: { photo: s.photo } // 성적 데이터 없음, 사진만 있음
+                data: { 
+                    photo: s.photo,
+                    phone: s.phone // 여기에 전화번호 추가
+                } 
             };
         });
 
