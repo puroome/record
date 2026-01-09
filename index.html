@@ -774,14 +774,28 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
         galleryArea.innerHTML = html;
     }
 
-    // [신규] 갤러리 사진 클릭 핸들러
+// [신규] 갤러리 사진 클릭 핸들러
     function onPhotoClick(index) {
-        // 졸업생 모드인 경우 클릭 무시 (성적이 없으므로)
-        if (isGraduateMode) return;
-
         var selectedStudent = galleryMatches[index];
+
+        // [수정] 졸업생 모드 처리 로직 변경
+        if (isGraduateMode) {
+            // 전화번호가 있는지 확인
+            if (selectedStudent && selectedStudent.data && selectedStudent.data.phone) {
+                // 숫자만 추출 (하이픈 등 제거)
+                var phoneNumber = selectedStudent.data.phone.replace(/[^0-9]/g, '');
+                
+                // 번호가 존재하면 전화 걸기
+                if (phoneNumber) {
+                    window.location.href = "tel:" + phoneNumber;
+                }
+            }
+            // 졸업생은 성적 조회를 하지 않으므로 여기서 함수 종료
+            return;
+        }
+
+        // 재학생(성적 조회 모드)인 경우 기존 로직 수행
         if (selectedStudent) {
-            // 프리패스 모드 (isAdmin=true)로 성적 조회 화면 이동
             proceedWithSelection(selectedStudent, true);
         }
     }
