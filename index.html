@@ -850,22 +850,36 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
         }
     }
 
-    function processRegister() {
+function processRegister() {
       var pw1 = document.getElementById('regPw1').value;
       var pw2 = document.getElementById('regPw2').value;
       if (!pw1 || pw1.length < 4) { showAlert("비밀번호 오류", "비밀번호는 4글자 이상이어야 합니다."); return; }
       if (pw1 !== pw2) { showAlert("비밀번호 오류", "두 비밀번호가 일치하지 않습니다."); return; }
       
       var msg = "비밀번호를 설정하시겠습니까?<br><br>설정된 비밀번호: <b style='color:#4285F4'>" + pw1 + "</b>";
+      
       showConfirm("설정 확인", msg, function() { 
-        db.ref('students/' + currentId).update({ pw: pw1 }).then(function() {
-           if(fetchedStudentData) {
-              fetchedStudentData.pw = pw1;
-              localStorage.setItem('cached_student_data', JSON.stringify(fetchedStudentData));
-           }
-           // [수정] 비밀번호 설정 후에는 관리자 모드 아님(false)
-           showAlert("설정 완료", "비밀번호가 설정되었습니다.<br>성적을 조회합니다.", function() { loadScoreAndShow(pw1, false); });
-        }).catch(function(err) { showAlert("오류", "시스템 오류가 발생했습니다."); });
+        // [수정] 이제 구글 시트로 데이터를 보냅니다!
+        var url = SCRIPT_URL + "?action=registerPassword&id=" + currentId + "&pw=" + pw1;
+        
+        fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 성공하면 앱에도 저장하고 로그인 진행
+                if(fetchedStudentData) {
+                    fetchedStudentData.pw = pw1;
+                    localStorage.setItem('cached_student_data', JSON.stringify(fetchedStudentData));
+                }
+                showAlert("설정 완료", "비밀번호가 시트와 DB에 저장되었습니다.<br>성적을 조회합니다.", function() { loadScoreAndShow(pw1, false); });
+            } else {
+                showAlert("오류", "설정 실패: " + data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showAlert("오류", "서버 통신 중 오류가 발생했습니다.");
+        });
       });
     }
 
