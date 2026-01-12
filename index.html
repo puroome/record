@@ -871,7 +871,7 @@ function processRegister() {
                     fetchedStudentData.pw = pw1;
                     localStorage.setItem('cached_student_data', JSON.stringify(fetchedStudentData));
                 }
-                showAlert("설정 완료", "비밀번호가 시트와 DB에 저장되었습니다.<br>성적을 조회합니다.", function() { loadScoreAndShow(pw1, false); });
+                showAlert("설정 완료", "비밀번호가 저장되었습니다.<br>성적을 조회합니다.", function() { loadScoreAndShow(pw1, false); });
             } else {
                 showAlert("오류", "설정 실패: " + data.message);
             }
