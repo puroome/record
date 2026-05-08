@@ -302,9 +302,9 @@
        ========================================= */
     function handleAdminLogin() {
         if (isAdminUser) {
-            showConfirm("관리자 로그아웃", "관리자 모드를 종료하시겠습니까?", function() {
+            showConfirm("로그아웃", "교사 모드를 종료하시겠습니까?", function() {
                 firebase.auth().signOut().then(() => {
-                    showAlert("알림", "관리자 모드가 종료되었습니다.");
+                    showAlert("알림", "교사 모드가 종료되었습니다.");
                 });
             });
             return;
@@ -328,13 +328,13 @@
                     isAdminUser = true;
                     currentUser = user;
                     document.getElementById('lastUpdatedDisplay').style.color = '#4285F4'; 
-                    if (!isSilent) showAlert("관리자 모드", data.name + " 선생님, 환영합니다.<br>관리자 모드가 활성화되었습니다.");
+                    if (!isSilent) showAlert("교사 모드", data.name + " 선생님, 환영합니다.<br>교사 모드가 활성화되었습니다.");
                 } else {
                     // 권한이 'no' 거나 아직 승인되지 않은 경우
                     firebase.auth().signOut();
                     isAdminUser = false;
                     currentUser = null;
-                    if (!isSilent) showAlert("승인 대기 중", "관리자의 승인을 기다리는 중입니다.<br>잠시 후 다시 시도해주세요.");
+                    if (!isSilent) showAlert("승인 대기 중", "관리자 승인을 기다리는 중입니다.<br>잠시 후 다시 시도해주세요.");
                 }
             } else {
                 // 데이터베이스에 없는 신규 유저일 경우 폼을 띄움
