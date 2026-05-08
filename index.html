@@ -10,128 +10,38 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    /* 1. 기본 설정 */
-    body { 
-      font-family: 'Malgun Gothic', -apple-system, sans-serif; 
-      padding: 20px; 
-      background-color: #f4f6f8; 
-      text-align: center; 
-      margin: 0;
-      overscroll-behavior-y: contain; 
-      user-select: none; -webkit-user-select: none;
-    }
-
-    /* 컨테이너 */
-    .container { 
-      background: white; 
-      max-width: 500px; 
-      margin: 10px auto; 
-      padding: 30px; 
-      border-radius: 12px; 
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-      position: relative; 
-      transition: max-width 0.3s;
-    }
-     
-    /* 결과 화면 모드 (성적표) */
-    .container.result-mode {
-      background: transparent;
-      box-shadow: none;
-      padding: 0; 
-      max-width: 600px; 
-      margin-top: 0; 
-    }
-
-    /* 갤러리 모드 컨테이너 (더 넓게) */
-    .container.gallery-mode {
-      background: transparent;
-      box-shadow: none;
-      padding: 0;
-      max-width: 800px; /* 사진을 위해 폭을 넓힘 */
-      margin-top: 0;
-    }
-
+    /* 기존 스타일 유지... */
+    body { font-family: 'Malgun Gothic', -apple-system, sans-serif; padding: 20px; background-color: #f4f6f8; text-align: center; margin: 0; overscroll-behavior-y: contain; user-select: none; -webkit-user-select: none; }
+    .container { background: white; max-width: 500px; margin: 10px auto; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; transition: max-width 0.3s; }
+    .container.result-mode { background: transparent; box-shadow: none; padding: 0; max-width: 600px; margin-top: 0; }
+    .container.gallery-mode { background: transparent; box-shadow: none; padding: 0; max-width: 800px; margin-top: 0; }
     h2 { color: #333; margin-bottom: 25px; }
     p { color: #666; font-size: 14px; margin-bottom: 15px; }
-
-    /* 메인 헤더 */
-    .header-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: -30px;
-      margin-left: -30px;
-      margin-right: -30px;
-      padding: 20px 25px;
-      margin-bottom: 10px;
-    }
-    .developer-brand, .last-updated {
-      font-size: 11px; color: #b0b0b0; font-family: Roboto, sans-serif; cursor: default;
-    }
-    /* [수정] 개발자 브랜드 클릭 가능하게 변경 */
-    .developer-brand { text-transform: uppercase; cursor: pointer; transition: color 0.2s; }
+    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-top: -30px; margin-left: -30px; margin-right: -30px; padding: 20px 25px; margin-bottom: 10px; }
+    
+    /* [수정] Update 텍스트 클릭(로그인) 가능하게 변경 */
+    .last-updated { font-size: 11px; color: #b0b0b0; font-family: Roboto, sans-serif; cursor: pointer; transition: color 0.2s; }
+    .last-updated:hover { color: #4285F4; }
+    .developer-brand { font-size: 11px; color: #b0b0b0; font-family: Roboto, sans-serif; text-transform: uppercase; cursor: pointer; transition: color 0.2s; }
     .developer-brand:hover { color: #4285F4; }
      
-    /* 입력창 공통 */
-    input { 
-      width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; transition: 0.3s; 
-      user-select: text; -webkit-user-select: text;
-    }
+    input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; transition: 0.3s; user-select: text; -webkit-user-select: text; }
     input:focus { border-color: #4285F4; outline: none; }
-     
     .btn { width: 100%; padding: 14px; background-color: #4285F4; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
     .btn:hover { background-color: #3367d6; }
     .btn:disabled { background-color: #ccc; cursor: not-allowed; } 
-     
     .step-area { display: none; }
     #step1 { display: block; } 
 
     /* 상단 고정 영역 (성적표 및 갤러리용) */
-    .sticky-header-group {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background-color: #f4f6f8; 
-      padding-top: 0; 
-      padding-bottom: 5px; /* 하단 여백 축소 */
-      margin-bottom: 10px;
-      margin-top: -20px;
-    }
-
-    .result-top-info {
-        display: flex;
-        justify-content: space-between;
-        padding: 15px 5px 5px 5px; 
-        margin-bottom: 5px;
-    }
-
-    .result-info-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center; 
-        padding: 0 5px 15px 5px;
-    }
-     
+    .sticky-header-group { position: sticky; top: 0; z-index: 100; background-color: #f4f6f8; padding-top: 0; padding-bottom: 5px; margin-bottom: 10px; margin-top: -20px; }
+    .result-top-info { display: flex; justify-content: space-between; padding: 15px 5px 5px 5px; margin-bottom: 5px; }
+    .result-info-bar { display: flex; justify-content: space-between; align-items: center; padding: 0 5px 15px 5px; }
     .student-info-group { display: flex; align-items: center; gap: 10px; }
     .student-name { font-size: 24px; font-weight: 800; color: #4285F4; }
     .student-id { font-size: 24px; font-weight: 300; color: #777; }
-
-    .logout-btn { 
-      width: 38px; height: 38px;
-      background-color: white;
-      border-radius: 50%;
-      display: flex; justify-content: center; align-items: center;
-      cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      border: 1px solid #eee;
-      transition: all 0.2s ease;
-    }
-    .logout-btn:hover {
-      transform: translateY(-3px) scale(1.05);
-      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-      background-color: #fff;
-      border-color: #dceefc;
-    }
+    .logout-btn { width: 38px; height: 38px; background-color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; transition: all 0.2s ease; }
+    .logout-btn:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 6px 12px rgba(0,0,0,0.15); background-color: #fff; border-color: #dceefc; }
     .logout-svg { width: 18px; height: 18px; fill: #888; transition: fill 0.2s; }
     .logout-btn:hover .logout-svg { fill: #4285F4; }
 
@@ -175,130 +85,37 @@
     /* 모달 스타일 */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
     .modal-box { background: white; padding: 25px; border-radius: 16px; width: 85%; max-width: 360px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); animation: popIn 0.2s; position: relative; }
-    
-    /* [수정] 모달이 내용에 맞게 줄어드는 스타일 추가 */
-    .modal-box.compact {
-      width: auto;
-      min-width: 200px;
-      max-width: 90%;
-    }
-
+    .modal-box.compact { width: auto; min-width: 200px; max-width: 90%; }
     .modal-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 8px; }
     .modal-msg { font-size: 15px; color: #555; line-height: 1.5; word-break: keep-all; margin-bottom: 20px; }
     .modal-btn-group { display: flex; gap: 10px; }
     .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.1s; }
     .modal-btn.confirm { background-color: #4285F4; color: white; }
     .modal-btn.cancel { background-color: #f1f3f4; color: #555; }
-     
     .option-btn { background-color: #fff; color: #333; padding: 15px; border: 1px solid #eee; border-radius: 10px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 8px; transition: 0.2s; text-align: left; display: flex; justify-content: space-between; }
     .option-btn:hover { background-color: #f8fbff; border-color: #4285F4; color: #1967d2; }
-     
-    /* [신규] 년도 선택 버튼 스타일 (완전 수정됨: align-self: center 추가) */
-    .year-btn {
-      align-self: center; /* 부모가 늘리려고 해도 자기 크기 유지(중요!) */
-      display: inline-block;
-      width: auto; /* 내용물에 딱 맞게 */
-       
-      margin: 6px auto; 
-      background-color: #fff; 
-      color: #333; 
-       
-      /* 여백 축소 */
-      padding: 6px 12px; 
-       
-      border: 1px solid #eee; 
-      border-radius: 30px; 
-      font-size: 16px; 
-      font-weight: bold; 
-      cursor: pointer; 
-      transition: 0.2s;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-    .year-btn:hover {
-      background-color: #4285F4; color: white; border-color: #4285F4;
-    }
-
+    .year-btn { align-self: center; display: inline-block; width: auto; margin: 6px auto; background-color: #fff; color: #333; padding: 6px 12px; border: 1px solid #eee; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .year-btn:hover { background-color: #4285F4; color: white; border-color: #4285F4; }
     .close-icon { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 24px; color: #ccc; line-height: 1; z-index: 10; padding: 5px; }
     .close-icon:hover { color: #333; }
 
     /* 갤러리 스타일 (기본) */
-    .gallery-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 15px;
-      padding: 10px;
-    }
-     
-    /* 갤러리 스타일 (1명일 때 중앙 정렬 및 확대) */
-    .gallery-single-view {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start; /* 상단 기준 정렬 */
-      padding: 30px 10px;
-    }
-     
-    .gallery-single-view .photo-card {
-      /* 기존 그리드(min 140px) 대비 약 1.5배~2배 느낌으로 설정 */
-      width: 240px; 
-      max-width: 80%; /* 모바일 화면 넘어감 방지 */
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15); /* 강조를 위해 그림자 강화 */
-    }
-     
-    .gallery-single-view .photo-frame {
-      aspect-ratio: 3 / 4; 
-    }
-     
+    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 10px; }
+    .gallery-single-view { display: flex; justify-content: center; align-items: flex-start; padding: 30px 10px; }
+    .gallery-single-view .photo-card { width: 240px; max-width: 80%; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+    .gallery-single-view .photo-frame { aspect-ratio: 3 / 4; }
     .gallery-single-view .photo-name { font-size: 20px; margin-top: 10px; margin-bottom: 5px; }
     .gallery-single-view .photo-id { font-size: 15px; margin-bottom: 10px; }
-
-    /* 공통 카드 스타일 */
-    .photo-card {
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      text-align: center;
-      transition: transform 0.2s;
-      cursor: pointer;
-    }
+    .photo-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center; transition: transform 0.2s; cursor: pointer; }
     .photo-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.12); }
-
-    .photo-frame {
-      width: 100%;
-      aspect-ratio: 3 / 4; 
-      background-color: #f0f0f0;
-      position: relative;
-      overflow: hidden;
-    }
-    .photo-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-    .photo-placeholder {
-      width: 100%; height: 100%;
-      display: flex; align-items: center; justify-content: center;
-      color: #ccc; font-size: 40px;
-    }
-
+    .photo-frame { width: 100%; aspect-ratio: 3 / 4; background-color: #f0f0f0; position: relative; overflow: hidden; }
+    .photo-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .photo-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 40px; }
     .photo-info { padding: 10px; }
     .photo-name { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 2px; }
     .photo-id { font-size: 13px; color: #888; }
-     
-    /* [수정] 갤러리 헤더 높이 축소 및 중앙 정렬 */
-    .gallery-header {
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center;
-      padding: 10px 20px; /* 기존 상10/하20 -> 상하 10으로 줄여서 전체 높이 축소 및 센터링 */
-      height: 40px; /* 명시적 높이 지정으로 슬림함 유지 */
-    }
-    .btn-back-search {
-      padding: 6px 14px; /* 버튼도 약간 슬림하게 조정 */
-      background: #fff; border: 1px solid #ddd;
-      border-radius: 20px; font-size: 14px; font-weight: bold; color: #555; cursor: pointer;
-    }
+    .gallery-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; height: 40px; }
+    .btn-back-search { padding: 6px 14px; background: #fff; border: 1px solid #ddd; border-radius: 20px; font-size: 14px; font-weight: bold; color: #555; cursor: pointer; }
     .btn-back-search:hover { background: #f5f5f5; }
 
     @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -306,13 +123,13 @@
   </style>
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script> <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
   <div class="container" id="mainContainer">
      
     <div id="mainHeaderBar" class="header-bar">
-      <div id="lastUpdatedDisplay" class="last-updated"></div>
+      <div id="lastUpdatedDisplay" class="last-updated" onclick="handleAdminLogin()"></div>
       <div class="developer-brand" onclick="initGraduateMode()">ⓒ JEONGKAPSU</div>
     </div>
 
@@ -340,7 +157,6 @@
     </div>
 
     <div id="step3-result" class="step-area"></div>
-     
     <div id="step3-gallery" class="step-area"></div>
 
   </div>
@@ -369,19 +185,11 @@
 
   <script>
     /* =========================================
-       1. Helper functions
+       1. Firebase & 초기 설정
        ========================================= */
-    function closeGraphModal() { 
-        document.getElementById('graphModal').style.display = 'none'; 
-    }
-     
-    function closeModal() { 
-        document.getElementById('customModal').style.display = 'none'; 
-    }
+    function closeGraphModal() { document.getElementById('graphModal').style.display = 'none'; }
+    function closeModal() { document.getElementById('customModal').style.display = 'none'; }
 
-    /* =========================================
-       2. Firebase & 초기 설정
-       ========================================= */
     const firebaseConfig = {
       apiKey: "AIzaSyDzAYguXSjmjNJFEYPplLKUj_twhOO0Llk",
       authDomain: "record-99cf0.firebaseapp.com",
@@ -404,13 +212,24 @@
     var myChart = null; 
     var serverVersion = 0; 
     var galleryMatches = [];
-    var isGraduateMode = false; // 졸업생 앨범 모드 확인 플래그
-     
-    // [보안 완료] 소스 코드에서 키 값 완전 제거 (임의의 로딩중 값으로 설정)
-    var adminTriggerKey = "WAIT_FOR_DB_LOADING"; 
-    var photoTriggerKey = "WAIT_FOR_DB_LOADING";
+    var isGraduateMode = false;
+
+    // [신규] 관리자 및 사용자 권한 전역 변수
+    let currentUser = null;
+    let isAdminUser = false;
 
     document.addEventListener('contextmenu', function(event) { event.preventDefault(); });
+
+    // Auth 상태 감지 유지
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            checkAdminPermission(user, true); // true = 조용히 로그인 유지 상태 복구
+        } else {
+            isAdminUser = false;
+            currentUser = null;
+            document.getElementById('lastUpdatedDisplay').style.color = '#b0b0b0';
+        }
+    });
 
     window.addEventListener('load', function() {
         checkAppVersion();
@@ -448,7 +267,7 @@
             document.getElementById('step1').style.display = 'block';
         }
         document.getElementById('mainTitle').style.display = showMainTitle ? 'block' : 'none';
-        isGraduateMode = false; // 뒤로가기 시 모드 초기화
+        isGraduateMode = false; 
     };
 
     function checkAppVersion() {
@@ -458,10 +277,6 @@
           var sVer = info.version;            
           var sDate = info.lastUpdated;  
           
-          // [보안 수정] DB에서 키 값 불러와서 덮어쓰기
-          if (info.adminKey) adminTriggerKey = info.adminKey;
-          if (info.photoKey) photoTriggerKey = info.photoKey;
-
           document.getElementById('lastUpdatedDisplay').innerText = "Update: " + sDate;
           
           var localVer = localStorage.getItem('cached_version');
@@ -476,6 +291,48 @@
             document.getElementById('lastUpdatedDisplay').innerText = "Update: " + localDate + " (Offline)";
         }
       });
+    }
+
+    /* =========================================
+       2. 구글 로그인 및 권한 검증 로직
+       ========================================= */
+    function handleAdminLogin() {
+        if (isAdminUser) {
+            showConfirm("관리자 로그아웃", "관리자 모드를 종료하시겠습니까?", function() {
+                firebase.auth().signOut().then(() => {
+                    showAlert("알림", "관리자 모드가 종료되었습니다.");
+                });
+            });
+            return;
+        }
+
+        const provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider).then((result) => {
+            checkAdminPermission(result.user, false);
+        }).catch((error) => {
+            console.error(error);
+            showAlert("오류", "로그인에 실패했습니다.");
+        });
+    }
+
+    function checkAdminPermission(user, isSilent) {
+        var emailKey = user.email.toLowerCase().replace(/\./g, '_');
+        db.ref('admins/' + emailKey).once('value').then((snapshot) => {
+            if (snapshot.exists() && snapshot.val().permission === 'yes') {
+                isAdminUser = true;
+                currentUser = user;
+                document.getElementById('lastUpdatedDisplay').style.color = '#4285F4'; // 시각적 피드백
+                if (!isSilent) showAlert("관리자 모드", user.displayName + "님, 관리자 모드로 전환되었습니다.");
+            } else {
+                firebase.auth().signOut();
+                isAdminUser = false;
+                currentUser = null;
+                if (!isSilent) showAlert("접근 제한", "관리자 권한이 없는 계정입니다.");
+            }
+        }).catch((error) => {
+            console.error(error);
+            if (!isSilent) showAlert("오류", "권한 확인 중 문제가 발생했습니다.");
+        });
     }
 
     /* =========================================
@@ -503,15 +360,10 @@
 
     function showSelectionList(matches, isAdmin) {
       resetModalState();
-      // [추가] 모달의 너비를 내용에 맞게 줄여주는 코드
-document.getElementById('commonModalBox').classList.add('compact');
-document.getElementById('modalTitle').innerText = "학생 선택";
-
-// 기존 코드: document.getElementById('modalMsg').innerHTML = "아래 목록에서 선택하세요.";
-// 변경 코드: 아예 영역을 숨김
-document.getElementById('modalMsg').style.display = 'none'; 
-
-document.getElementById('modalBtnGroup').style.display = 'none';;
+      document.getElementById('commonModalBox').classList.add('compact');
+      document.getElementById('modalTitle').innerText = "학생 선택";
+      document.getElementById('modalMsg').style.display = 'none'; 
+      document.getElementById('modalBtnGroup').style.display = 'none';;
        
       var optContainer = document.getElementById('modalOptions');
       optContainer.innerHTML = ""; 
@@ -532,18 +384,16 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
 
     function resetModalState() {
       document.getElementById('modalOptions').style.display = 'none';
+      document.getElementById('modalMsg').style.display = 'block';
       document.getElementById('modalBtnGroup').style.display = 'flex';
       document.getElementById('modalBtnConfirm').onclick = function() { if (onModalConfirm) onModalConfirm(); else closeModal(); };
-      
-      // [수정] 모달 스타일 초기화 (compact 클래스 제거하여 다른 모달은 넓게 보이도록)
       document.getElementById('commonModalBox').classList.remove('compact');
     }
 
     /* =========================================
-       [신규] 졸업생 앨범 모드 로직
+       졸업생 앨범 모드 로직
        ========================================= */
     function initGraduateMode() {
-        // 로딩 표시 등 필요하다면 추가
         db.ref('graduates').once('value').then(function(snapshot) {
             if (snapshot.exists()) {
                 var gradData = snapshot.val();
@@ -559,10 +409,7 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
 
     function showYearSelectionModal(gradData) {
         resetModalState();
-        
-        // [수정] 이 모달은 텍스트 길이에 맞게 너비를 줄임
         document.getElementById('commonModalBox').classList.add('compact');
-
         document.getElementById('modalTitle').innerText = "졸업 앨범";
         document.getElementById('modalMsg').innerHTML = "졸업 년도를 선택하세요.";
         document.getElementById('modalBtnGroup').style.display = 'none';
@@ -570,15 +417,13 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
         var optContainer = document.getElementById('modalOptions');
         optContainer.innerHTML = "";
         optContainer.style.display = 'flex';
-        // 버튼들을 중앙 정렬하기 위해 스타일 조정
         optContainer.style.alignItems = "center"; 
 
-        // 키(년도)를 내림차순 정렬 (최신순)
         var years = Object.keys(gradData).sort().reverse();
         
         years.forEach(function(year) {
             var btn = document.createElement('button');
-            btn.className = 'year-btn'; // 신규 스타일 클래스 사용
+            btn.className = 'year-btn'; 
             btn.innerText = year + "년";
             btn.onclick = function() {
                 closeModal();
@@ -586,60 +431,43 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
             };
             optContainer.appendChild(btn);
         });
-
         document.getElementById('customModal').style.display = 'flex';
     }
 
     function showGraduateGallery(year, studentsList) {
-        isGraduateMode = true; // 플래그 설정
-        
-        // 년도 뒤 두자리 추출 (2025 -> 25)
+        isGraduateMode = true; 
         var shortYear = year.length === 4 ? year.substring(2) : year;
         var customTitle = shortYear + "년 졸업생: " + studentsList.length + "명";
 
-// [수정] phone 데이터도 함께 넘기도록 추가
         var formattedMatches = studentsList.map(function(s) {
             return {
                 id: s.id,
                 name: s.name,
-                data: { 
-                    photo: s.photo,
-                    phone: s.phone // 여기에 전화번호 추가
-                } 
+                data: { photo: s.photo, phone: s.phone } 
             };
         });
 
-        // 학번 순 정렬
         formattedMatches.sort(function(a, b) { return parseInt(a.id) - parseInt(b.id); });
-
         showPhotoGallery(formattedMatches, customTitle);
     }
 
-
     /* =========================================
-       4. 검색 및 인증 로직 (보안 강화됨)
+       4. 검색 및 결과 노출 로직 (보안 강화)
        ========================================= */
     function processSearch() {
         var inputEl = document.getElementById('inputSearch');
         var rawVal = inputEl.value.trim();
         if (!rawVal) { showAlert("입력 오류", "학번 또는 이름을 입력해주세요."); return; }
 
-        // [보안 수정] DB에서 가져온 키값으로 사진 모드 체크
         var isPhotoMode = false;
-        // adminTriggerKey, photoTriggerKey가 로딩되지 않았으면 기본값(WAIT_FOR_DB...)이라 절대 매칭 안됨
-        if (rawVal.startsWith(photoTriggerKey)) {
-            isPhotoMode = true;
-            // 키의 길이만큼 잘라냄
-            rawVal = rawVal.substring(photoTriggerKey.length).trim(); 
-        }
 
-        var isAdmin = false;
-        // [보안 수정] DB에서 가져온 키값으로 관리자 모드 체크
-        if (rawVal.startsWith(adminTriggerKey)) {
-            isAdmin = true;
-            // 키의 길이만큼 잘라냄
-            rawVal = rawVal.substring(adminTriggerKey.length).trim(); 
+        // [수정] 관리자인 경우에만 사진 검색('p') 동작 처리
+        if (isAdminUser && (rawVal.startsWith('p') || rawVal.startsWith('P'))) {
+            isPhotoMode = true;
+            rawVal = rawVal.substring(1).trim(); 
         }
+        // 일반 사용자가 p로 시작하는 이름을 쳤을 때는 isPhotoMode = false가 되고
+        // 글자 그대로 검색되므로 결과가 없게 되어 조용히 무시됩니다.
 
         if (!rawVal) return;
 
@@ -647,8 +475,6 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
         btn.innerHTML = "조회 중..."; btn.disabled = true;
 
         var searchPromise;
-        
-        // 1. 와일드카드 검색 (?)
         if (rawVal.includes("?")) {
             searchPromise = db.ref('students').once('value').then(function(snapshot) {
                 if (!snapshot.exists()) return [];
@@ -665,7 +491,6 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
                 return matches;
             });
         }
-        // 3. 일반 학번 검색 (숫자)
         else if (/^\d+$/.test(rawVal)) {
              searchPromise = db.ref('students/' + rawVal).once('value').then(function(snapshot) {
                 if (snapshot.exists()) {
@@ -674,7 +499,6 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
                 return [];
              });
         } 
-        // 4. 이름 검색
         else {
              searchPromise = db.ref('students').orderByChild('name').equalTo(rawVal).once('value').then(function(snapshot) {
                 var matches = [];
@@ -689,19 +513,16 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
 
         searchPromise.then(function(matches) {
             btn.innerHTML = "조회하기"; btn.disabled = false;
-            
-            // 학번 순 정렬
             matches.sort(function(a, b) { return parseInt(a.id) - parseInt(b.id); });
 
             if (matches.length === 0) {
                 showAlert("알림", "일치하는 학생 정보가 없습니다.");
             } else {
                 if (isPhotoMode) {
-                    // 사진 갤러리 모드로 이동
-                    showPhotoGallery(matches); // 기본 타이틀 사용
+                    showPhotoGallery(matches); 
                 } else {
-                    // 기존 성적 조회 로직
-                    handleSearchResults(matches, isAdmin);
+                    // [수정] 관리자 계정이면 isAdmin 플래그 전달
+                    handleSearchResults(matches, isAdminUser);
                 }
             }
         }).catch(function(err) {
@@ -711,11 +532,8 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
         });
     }
 
-    /* =========================================
-       [수정] 사진 갤러리 표시 함수 (커스텀 타이틀 지원 추가)
-       ========================================= */
     function showPhotoGallery(matches, customTitle) {
-        galleryMatches = matches; // 클릭 처리를 위해 전역 변수에 저장
+        galleryMatches = matches; 
 
         document.getElementById('mainContainer').classList.add('gallery-mode');
         document.querySelectorAll('.step-area').forEach(el => el.style.display = 'none');
@@ -726,13 +544,9 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
         galleryArea.style.display = 'block';
         history.pushState({ step: 'step3-gallery' }, 'gallery', '');
 
-        // 갤러리 HTML 구성
         var html = '';
-        
-        // 타이틀 결정 로직 (customTitle이 있으면 그것 사용, 없으면 검색 결과)
         var titleText = customTitle ? customTitle : '검색 결과: ' + matches.length + '명';
 
-        // 상단 헤더 (뒤로가기 + 타이틀)
         html += '<div class="sticky-header-group">';
         html += '  <div class="gallery-header">';
         html += '    <button class="btn-back-search" onclick="resetAll()">← 홈으로</button>';
@@ -740,18 +554,12 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
         html += '  </div>';
         html += '</div>';
 
-        // [핵심 로직 변경] 결과가 1명이냐 여러 명이냐에 따라 컨테이너 클래스 분기
         var containerClass = (matches.length === 1) ? 'gallery-single-view' : 'gallery-grid';
-        
         html += '<div class="' + containerClass + '">';
         
         matches.forEach(function(m, index) {
-            var photoUrl = m.data.photo || ""; // Firebase에 저장된 URL
-            
-            // onclick 이벤트: 클릭 시 onPhotoClick(index) 호출
+            var photoUrl = m.data.photo || ""; 
             html += '<div class="photo-card" onclick="onPhotoClick(' + index + ')">';
-            
-            // 사진 프레임
             html += '  <div class="photo-frame">';
             if (photoUrl) {
                 html += '    <img src="' + photoUrl + '" class="photo-img" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">';
@@ -760,48 +568,33 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
                 html += '    <div class="photo-placeholder">👤</div>';
             }
             html += '  </div>';
-
-            // 정보 영역
             html += '  <div class="photo-info">';
             html += '    <div class="photo-name">' + m.name + '</div>';
             html += '    <div class="photo-id">' + m.id + '</div>';
             html += '  </div>';
-            
-            html += '</div>'; // card end
+            html += '</div>';
         });
 
-        html += '</div>'; // grid/single-view end
-        
+        html += '</div>';
         galleryArea.innerHTML = html;
     }
 
-// [신규] 갤러리 사진 클릭 핸들러
     function onPhotoClick(index) {
         var selectedStudent = galleryMatches[index];
-
-        // [수정] 졸업생 모드 처리 로직 변경
         if (isGraduateMode) {
-            // 전화번호가 있는지 확인
             if (selectedStudent && selectedStudent.data && selectedStudent.data.phone) {
-                // 숫자만 추출 (하이픈 등 제거)
                 var phoneNumber = selectedStudent.data.phone.replace(/[^0-9]/g, '');
-                
-                // 번호가 존재하면 전화 걸기
-                if (phoneNumber) {
-                    window.location.href = "tel:" + phoneNumber;
-                }
+                if (phoneNumber) window.location.href = "tel:" + phoneNumber;
             }
-            // 졸업생은 성적 조회를 하지 않으므로 여기서 함수 종료
             return;
         }
 
-        // 재학생(성적 조회 모드)인 경우 기존 로직 수행
+        // [수정] 성적 확인으로 넘길 때 관리자 권한을 유지
         if (selectedStudent) {
-            proceedWithSelection(selectedStudent, true);
+            proceedWithSelection(selectedStudent, isAdminUser);
         }
     }
 
-    // 기존 성적 조회 핸들러 (유지)
     function handleSearchResults(matches, isAdmin) {
         if (matches.length === 1) {
             proceedWithSelection(matches[0], isAdmin);
@@ -810,10 +603,6 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
         }
     }
 
-    /* =========================================
-       [보안 수정] 비밀번호 우회 문자열 제거 및 로직 변경 (완료된 부분)
-       ========================================= */
-
     function proceedWithSelection(studentObj, isAdmin) {
         currentId = studentObj.id;
         currentName = studentObj.name;
@@ -821,6 +610,7 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
         studentObj.data.key = currentId;
         fetchedStudentData = studentObj.data;
         localStorage.setItem('cached_student_data', JSON.stringify(fetchedStudentData));
+        
         if (serverVersion) {
             var dateTxt = document.getElementById('lastUpdatedDisplay').innerText.replace("Update: ", "").replace(" (Offline)", "");
             localStorage.setItem('cached_version', serverVersion);
@@ -830,8 +620,8 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
         document.getElementById('step1').style.display = 'none';
         document.getElementById('step3-gallery').style.display = 'none'; 
 
+        // [수정] 관리자이면 비밀번호 스킵하고 바로 보여줌
         if (isAdmin) {
-            // [수정] 이상한 텍스트 대신, 두 번째 파라미터로 true(관리자임)를 전달
             loadScoreAndShow(null, true);
         } else {
             var storedPw = fetchedStudentData.pw ? String(fetchedStudentData.pw).trim() : "";
@@ -850,7 +640,7 @@ document.getElementById('modalBtnGroup').style.display = 'none';;
         }
     }
 
-function processRegister() {
+    function processRegister() {
       var pw1 = document.getElementById('regPw1').value;
       var pw2 = document.getElementById('regPw2').value;
       if (!pw1 || pw1.length < 4) { showAlert("비밀번호 오류", "비밀번호는 4글자 이상이어야 합니다."); return; }
@@ -859,14 +649,11 @@ function processRegister() {
       var msg = "비밀번호를 설정하시겠습니까?<br><br>설정된 비밀번호: <b style='color:#4285F4'>" + pw1 + "</b>";
       
       showConfirm("설정 확인", msg, function() { 
-        // [수정] 이제 구글 시트로 데이터를 보냅니다!
         var url = SCRIPT_URL + "?action=registerPassword&id=" + currentId + "&pw=" + pw1;
-        
         fetch(url)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // 성공하면 앱에도 저장하고 로그인 진행
                 if(fetchedStudentData) {
                     fetchedStudentData.pw = pw1;
                     localStorage.setItem('cached_student_data', JSON.stringify(fetchedStudentData));
@@ -886,11 +673,9 @@ function processRegister() {
     function processLogin() {
       var pw = document.getElementById('loginPw').value;
       if (!pw) { showAlert("입력 오류", "비밀번호를 입력하세요."); return; }
-      // [수정] 로그인 시에는 관리자 모드 아님(false)
       loadScoreAndShow(pw, false);
     }
 
-    // [수정] isAdminMode 파라미터 추가
     function loadScoreAndShow(pw, isAdminMode) {
       if (!fetchedStudentData) {
          db.ref('students/' + currentId).once('value').then(function(snap){
@@ -898,7 +683,6 @@ function processRegister() {
                fetchedStudentData = snap.val();
                fetchedStudentData.key = currentId; 
                localStorage.setItem('cached_student_data', JSON.stringify(fetchedStudentData));
-               // 데이터 로드 후 검증 함수 호출
                verifyAndRender(pw, isAdminMode);
             } else {
                showAlert("오류", "데이터를 찾을 수 없습니다.");
@@ -906,20 +690,15 @@ function processRegister() {
             }
          });
       } else { 
-          // 데이터가 이미 있으면 바로 검증 함수 호출
           verifyAndRender(pw, isAdminMode); 
       }
     }
 
-    // [수정] 핵심 로직 변경
     function verifyAndRender(pw, isAdminMode) {
-       // 1. 저장된 비밀번호 가져오기
        var storedPw = fetchedStudentData.pw ? String(fetchedStudentData.pw).trim() : "";
-       // 2. 입력한 비밀번호가 맞는지 확인
        var pwMatch = (storedPw === String(pw).trim());
 
-       // [보안 완료] isAdminMode 변수가 true이거나, 비밀번호가 맞을 때만 보여줌
-       // 이제 문자열("##ADMIN_FREE_PASS##") 비교 로직은 사라졌습니다.
+       // [수정] 관리자이거나 비밀번호가 맞을 때만 표시 (보안코드 제거)
        if (isAdminMode === true || (pw && pwMatch)) {
          
          document.getElementById('mainContainer').classList.add('result-mode');
@@ -940,7 +719,7 @@ function processRegister() {
          var dateText = document.getElementById('lastUpdatedDisplay').innerText; 
          topInfoBar.innerHTML = 
             '<div class="last-updated">' + dateText + '</div>' +
-            '<div class="developer-brand">ⓒ JEONGKAPSU</div>';
+            '<div class="developer-brand" onclick="initGraduateMode()">ⓒ JEONGKAPSU</div>';
          
          stickyContainer.appendChild(topInfoBar);
 
@@ -1310,12 +1089,8 @@ function processRegister() {
             tooltip: { 
                 displayColors: false,
                 callbacks: {
-                    title: function(context) {
-                        return fullLabels[context[0].dataIndex];
-                    },
-                    label: function(context) {
-                        return '';
-                    }
+                    title: function(context) { return fullLabels[context[0].dataIndex]; },
+                    label: function(context) { return ''; }
                 }
             }
           }
@@ -1359,7 +1134,6 @@ function processRegister() {
             var itemName = displayItems[i].item;
             var itemScore = displayItems[i].score;
             var scoreStyle = "";
-            
             var normalized = normalizeSubjectName(itemName);
             var isTarget = ['국어','수학','영어'].includes(normalized);
             var iconHtml = "";
