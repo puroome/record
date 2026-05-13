@@ -232,14 +232,15 @@
     document.addEventListener('contextmenu', function(event) { event.preventDefault(); });
 
     firebase.auth().onAuthStateChanged((user) => {
-        if (user) {
-            checkAdminPermission(user, true); 
-        } else {
-            isAdminUser = false;
-            currentUser = null;
-            document.getElementById('lastUpdatedDisplay').style.color = '#b0b0b0';
-        }
-    });
+    if (user) {
+        checkAdminPermission(user, true); 
+    } else {
+        isAdminUser = false;
+        currentUser = null;
+        document.getElementById('lastUpdatedDisplay').style.color = '#b0b0b0';
+        document.getElementById('mainTitle').innerText = "광남고 성적 조회"; // ✨ [이 줄을 추가하세요!]
+    }
+});
 
     window.addEventListener('load', function() {
         checkAppVersion();
@@ -325,11 +326,12 @@
             if (snapshot.exists()) {
                 var data = snapshot.val();
                 if (data.permission === 'yes' || data.permission === 'y') {
-                    isAdminUser = true;
-                    currentUser = user;
-                    document.getElementById('lastUpdatedDisplay').style.color = '#4285F4'; 
-                    if (!isSilent) showAlert("교사 모드", data.name + " 선생님, 환영합니다.<br>교사 모드가 활성화되었습니다.");
-                } else {
+    isAdminUser = true;
+    currentUser = user;
+    document.getElementById('lastUpdatedDisplay').style.color = '#4285F4'; 
+    document.getElementById('mainTitle').innerText = "광남고 성적 조회 (교사용)"; // ✨ [이 줄을 추가하세요!]
+    if (!isSilent) showAlert("관리자 모드", data.name + " 선생님, 환영합니다.<br>관리자 모드가 활성화되었습니다.");
+} else {
                     // 권한이 'no' 거나 아직 승인되지 않은 경우
                     firebase.auth().signOut();
                     isAdminUser = false;
