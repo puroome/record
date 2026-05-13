@@ -239,6 +239,7 @@
         currentUser = null;
         document.getElementById('lastUpdatedDisplay').style.color = '#b0b0b0';
         document.getElementById('mainTitle').innerText = "광남고 성적 조회"; // ✨ [이 줄을 추가하세요!]
+      document.getElementById('btnStep1').style.backgroundColor = ''; // ✨ [이 줄을 추가하세요!] (스타일을 지워서 원래의 파란색으로 복구)
     }
 });
 
@@ -330,6 +331,7 @@
     currentUser = user;
     document.getElementById('lastUpdatedDisplay').style.color = '#4285F4'; 
     document.getElementById('mainTitle').innerText = "광남고 성적 조회 (교사용)"; // ✨ [이 줄을 추가하세요!]
+                  document.getElementById('btnStep1').style.backgroundColor = '#ea4335'; // ✨ [이 줄을 추가하세요!] (구글 스타일의 빨간색 적용)
     if (!isSilent) showAlert("관리자 모드", data.name + " 선생님, 환영합니다.<br>관리자 모드가 활성화되었습니다.");
 } else {
                     // 권한이 'no' 거나 아직 승인되지 않은 경우
