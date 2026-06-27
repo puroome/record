@@ -1,5 +1,5 @@
 {
-  "name": "record",
+  "name": "성적확인",
   "short_name": "성적확인",
   "start_url": "https://puroome.github.io/record/index.html",
   "display": "standalone",
